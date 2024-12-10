@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nasa/src/domain/entity/apod.dart';
+import 'package:nasa/src/presentation/view/apod_detail/apod_list_view.dart';
 import 'package:nasa/src/presentation/view/apod_list/apod_list_view.dart';
 
 class AppRouter {
@@ -13,12 +15,13 @@ class AppRouter {
           builder: (_) => const ApodListView(),
         );
       case detail:
+        final apod = settings.arguments as Apod;
         return MaterialPageRoute(
-          builder: (_) => w,
+          builder: (_) => ApodDetailView(apod: apod),
         );
       default:
         return MaterialPageRoute(
-          builder: (_) => w,
+          builder: (_) => const ApodListView(),
         );
     }
   }
