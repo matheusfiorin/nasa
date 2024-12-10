@@ -24,7 +24,7 @@ void main() {
   group('getApodList', () {
     const tDate = '2024-01-01';
     const tEndDate = '2024-01-07';
-    final tPath = ApiConfig.getApodList(tDate, tEndDate);
+    final tPath = ApiConfig.getApodListUri(tDate, tEndDate);
 
     test('should return List<ApodModel> when the response code is 200',
         () async {
@@ -82,7 +82,7 @@ void main() {
 
   group('searchApod', () {
     const tDate = '2024-01-01';
-    final tPath = ApiConfig.searchApod(tDate);
+    final tPath = ApiConfig.searchApodUri(tDate);
 
     test('should return ApodModel when the response code is 200', () async {
       dioAdapter.onGet(

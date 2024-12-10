@@ -20,7 +20,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
   Future<List<ApodModel>> getApodList(String startDate, String endDate) async {
     try {
       final response = await sl<ApiClient>().get(
-        ApiConfig.getApodList(startDate, endDate),
+        ApiConfig.getApodListUri(startDate, endDate),
       );
 
       if (response.statusCode == 200) {
@@ -109,7 +109,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
   Future<ApodModel> getApodByDate(String date) async {
     try {
       final response = await dio.get(
-        ApiConfig.searchApod(date),
+        ApiConfig.searchApodUri(date),
       );
 
       if (response.statusCode == 200) {
