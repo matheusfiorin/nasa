@@ -3,7 +3,7 @@
   "title": "Test Title",
   "explanation": "Test Explanation",
   "url": "https://example.com/image.jpg",
-  "mediaType": "image",
+  "media_type": "image",
   "copyright": "Test Copyright",
-  "hdUrl": "https://example.com/hd_image.jpg"
+  "hdurl": "https://example.com/hd_image.jpg"
 }

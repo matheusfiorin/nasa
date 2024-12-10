@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:dio/dio.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:http_mock_adapter/http_mock_adapter.dart';
 import 'package:nasa/src/core/config/api_config.dart';
@@ -11,14 +12,16 @@ import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
 import '../../../fixtures/fixture_reader.dart';
 
 void main() {
+  dotenv.testLoad(fileInput: '''NASA_API_KEY=DUMMY_KEY''');
+
   late Dio dio;
   late DioAdapter dioAdapter;
-  late ApodRemoteProviderImpl Provider;
+  late ApodRemoteProviderImpl provider;
 
   setUp(() {
     dio = Dio(BaseOptions());
     dioAdapter = DioAdapter(dio: dio);
-    Provider = ApodRemoteProviderImpl(dio: dio);
+    provider = ApodRemoteProviderImpl(dio: dio);
   });
 
   group('getApodList', () {
@@ -34,7 +37,7 @@ void main() {
         (server) => server.reply(200, jsonList),
       );
 
-      final result = await Provider.getApodList(tDate, tEndDate);
+      final result = await provider.getApodList(tDate, tEndDate);
 
       expect(result, isA<List<ApodModel>>());
       expect(result.length, 1);
@@ -49,7 +52,7 @@ void main() {
         (server) => server.reply(200, jsonMap),
       );
 
-      final result = await Provider.getApodList(tDate, tEndDate);
+      final result = await provider.getApodList(tDate, tEndDate);
 
       expect(result, isA<List<ApodModel>>());
       expect(result.length, 1);
@@ -62,7 +65,7 @@ void main() {
         (server) => server.reply(404, 'Not Found'),
       );
 
-      final call = Provider.getApodList;
+      final call = provider.getApodList;
 
       expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
     });
@@ -74,7 +77,7 @@ void main() {
         (server) => server.reply(202, 'Accepted'),
       );
 
-      final call = Provider.getApodList;
+      final call = provider.getApodList;
 
       expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
     });
@@ -90,7 +93,7 @@ void main() {
         (server) => server.reply(200, json.decode(fixture('apod.json'))),
       );
 
-      final result = await Provider.getApodByDate(tDate);
+      final result = await provider.getApodByDate(tDate);
 
       expect(result, isA<ApodModel>());
     });
@@ -102,7 +105,7 @@ void main() {
         (server) => server.reply(404, 'Not Found'),
       );
 
-      final call = Provider.getApodByDate;
+      final call = provider.getApodByDate;
 
       expect(() => call(tDate), throwsA(isA<ServerException>()));
     });
@@ -114,7 +117,7 @@ void main() {
         (server) => server.reply(202, 'Accepted'),
       );
 
-      final call = Provider.getApodByDate;
+      final call = provider.getApodByDate;
 
       expect(() => call(tDate), throwsA(isA<ServerException>()));
     });
