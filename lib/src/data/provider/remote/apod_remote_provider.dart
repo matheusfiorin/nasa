@@ -1,6 +1,8 @@
 import 'package:dio/dio.dart';
 import 'package:nasa/src/core/config/api_config.dart';
+import 'package:nasa/src/core/di/injection_container.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
+import 'package:nasa/src/core/network/api_client.dart';
 import 'package:nasa/src/data/model/apod_model.dart';
 
 abstract class ApodRemoteProvider {
@@ -17,7 +19,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
   @override
   Future<List<ApodModel>> getApodList(String startDate, String endDate) async {
     try {
-      final response = await dio.get(
+      final response = await sl<ApiClient>().get(
         ApiConfig.getApodList(startDate, endDate),
       );
 

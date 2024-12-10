@@ -11,9 +11,9 @@ _$ApodImpl _$$ApodImplFromJson(Map<String, dynamic> json) => _$ApodImpl(
       title: json['title'] as String,
       explanation: json['explanation'] as String,
       url: json['url'] as String,
-      mediaType: json['mediaType'] as String,
+      mediaType: json['media_type'] as String,
       copyright: json['copyright'] as String?,
-      hdUrl: json['hdUrl'] as String?,
+      hdUrl: json['hdurl'] as String?,
     );
 
 Map<String, dynamic> _$$ApodImplToJson(_$ApodImpl instance) =>

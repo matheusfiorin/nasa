@@ -45,3 +45,6 @@ app.*.map.json
 # Coverage related
 coverage/
 .test_coverage.dart
+
+# Env related
+*.env

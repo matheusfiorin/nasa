@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nasa/src/presentation/view/apod_list/apod_list_view.dart';
 
 class AppRouter {
   static const String initial = '/';
@@ -9,7 +10,7 @@ class AppRouter {
     switch (settings.name) {
       case initial:
         return MaterialPageRoute(
-          builder: (_) => w,
+          builder: (_) => const ApodListView(),
         );
       case detail:
         return MaterialPageRoute(

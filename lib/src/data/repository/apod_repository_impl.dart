@@ -33,8 +33,8 @@ class ApodRepositoryImpl implements ApodRepository {
           remoteApods.map((apod) => ApodHiveModel.fromApod(apod)).toList(),
         );
         return Right(remoteApods);
-      } on ServerException {
-        return const Left(ServerFailure('Failed to fetch data from server'));
+      } catch (e) {
+        return Left(ServerFailure(e.toString()));
       }
     } else {
       try {
