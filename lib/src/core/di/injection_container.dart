@@ -2,6 +2,8 @@ import 'package:get_it/get_it.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
 import 'package:dio/dio.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:nasa/src/core/config/api_config.dart';
+import 'package:nasa/src/core/network/api_client.dart';
 import 'package:nasa/src/data/model/apod_hive_model.dart';
 import 'package:nasa/src/data/provider/local/apod_local_provider.dart';
 import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
@@ -22,7 +24,7 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<ApodRepository>(
-        () => ApodRepositoryImpl(
+    () => ApodRepositoryImpl(
       remoteProvider: sl(),
       localProvider: sl(),
       networkInfo: sl(),
@@ -31,15 +33,18 @@ Future<void> init() async {
 
   // Providers
   sl.registerLazySingleton<ApodRemoteProvider>(
-        () => ApodRemoteProviderImpl(dio: sl()),
+    () => ApodRemoteProviderImpl(dio: sl()),
   );
   sl.registerLazySingleton<ApodLocalProvider>(
-        () => ApodLocalProviderImpl(apodBox: sl()),
+    () => ApodLocalProviderImpl(apodBox: sl()),
   );
 
   // Core
   sl.registerLazySingleton<NetworkInfo>(
-        () => NetworkInfoImpl(sl()),
+    () => NetworkInfoImpl(sl()),
+  );
+  sl.registerLazySingleton<ApiClient>(
+    () => ApiClient(),
   );
 
   // External
