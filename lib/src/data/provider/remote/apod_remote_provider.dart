@@ -3,16 +3,16 @@ import 'package:nasa/src/core/config/api_config.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/data/model/apod_model.dart';
 
-abstract class ApodRemoteDataSource {
+abstract class ApodRemoteProvider {
   Future<List<ApodModel>> getApodList(String startDate, String endDate);
 
   Future<ApodModel> getApodByDate(String date);
 }
 
-class ApodRemoteDataSourceImpl implements ApodRemoteDataSource {
+class ApodRemoteProviderImpl implements ApodRemoteProvider {
   final Dio dio;
 
-  ApodRemoteDataSourceImpl({required this.dio});
+  ApodRemoteProviderImpl({required this.dio});
 
   @override
   Future<List<ApodModel>> getApodList(String startDate, String endDate) async {
