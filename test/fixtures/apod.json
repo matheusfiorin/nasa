@@ -1,0 +1,9 @@
+{
+  "date": "2024-01-01",
+  "title": "Test Title",
+  "explanation": "Test Explanation",
+  "url": "https://example.com/image.jpg",
+  "mediaType": "image",
+  "copyright": "Test Copyright",
+  "hdUrl": "https://example.com/hd_image.jpg"
+}
