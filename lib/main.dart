@@ -1,12 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:hive_flutter/hive_flutter.dart';
+import 'package:nasa/src/core/di/injection_container.dart';
+import 'package:nasa/src/data/model/apod_hive_model.dart';
 import 'package:nasa/src/presentation/routes/app_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-
   await Hive.initFlutter();
-
+  Hive.registerAdapter(ApodHiveModelAdapter());
+  await init();  // Initialize dependencies
   runApp(const MyApp());
 }
 
