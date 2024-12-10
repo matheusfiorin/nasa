@@ -20,17 +20,39 @@ class ApodListViewModel extends ChangeNotifier {
 
   bool get isLoading => _isLoading;
 
+  bool _isLoadingMore = false;
+
+  bool get isLoadingMore => _isLoadingMore;
+
   String _error = '';
 
   String get error => _error;
 
-  Future<void> loadApods() async {
+  String _searchQuery = '';
+
+  String get searchQuery => _searchQuery;
+
+  bool _hasReachedEnd = false;
+
+  bool get hasReachedEnd => _hasReachedEnd;
+
+  DateTime? _oldestLoadedDate;
+
+  Future<void> loadApods({bool refresh = false}) async {
+    if (_isLoading) return;
+
+    if (refresh) {
+      _oldestLoadedDate = null;
+      _hasReachedEnd = false;
+      _apods.clear();
+    }
+
     _isLoading = true;
     _error = '';
     notifyListeners();
 
-    final endDate = DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 30));
+    final endDate = _oldestLoadedDate ?? DateTime.now();
+    final startDate = endDate.subtract(const Duration(days: 15));
 
     final result = await getApodList(startDate, endDate);
 
@@ -40,17 +62,91 @@ class ApodListViewModel extends ChangeNotifier {
         _isLoading = false;
         notifyListeners();
       },
-      (apods) {
-        _apods = apods;
+      (newApods) {
+        if (newApods.isEmpty) {
+          _hasReachedEnd = true;
+        } else {
+          _apods.addAll(newApods);
+          _apods.sort((a, b) => b.date.compareTo(a.date));
+          _oldestLoadedDate = startDate;
+        }
         _isLoading = false;
         notifyListeners();
       },
     );
   }
 
+  Future<void> loadMore() async {
+    if (_isLoading ||
+        _isLoadingMore ||
+        _hasReachedEnd ||
+        _searchQuery.isNotEmpty) {
+      print('LoadMore blocked by guards');
+      return;
+    }
+
+    if (_oldestLoadedDate == null) {
+      print('No oldest date available');
+      _isLoadingMore = false;
+      notifyListeners();
+      return;
+    }
+
+    _isLoadingMore = true;
+    notifyListeners();
+
+    try {
+      final endDate = DateTime(_oldestLoadedDate!.year,
+              _oldestLoadedDate!.month, _oldestLoadedDate!.day)
+          .subtract(const Duration(days: 1));
+      final startDate = endDate.subtract(const Duration(days: 15));
+
+      print('Requesting data from $startDate to $endDate');
+
+      final result = await getApodList(startDate, endDate);
+
+      result.fold(
+        (failure) {
+          _error = failure.message;
+          _isLoadingMore = false;
+          notifyListeners();
+        },
+        (newApods) {
+          if (newApods.isEmpty) {
+            _hasReachedEnd = true;
+          } else {
+            final uniqueApods = Map<String, Apod>.fromEntries([
+              ..._apods,
+              ...newApods
+            ].map((apod) => MapEntry(apod.date, apod))).values.toList()
+              ..sort((a, b) => b.date.compareTo(a.date));
+
+            _apods = uniqueApods;
+            _oldestLoadedDate = DateTime.parse(_apods
+                .map((a) => a.date)
+                .reduce((a, b) => a.compareTo(b) < 0 ? a : b));
+          }
+          _isLoadingMore = false;
+          notifyListeners();
+        },
+      );
+    } catch (e) {
+      print('Error in loadMore: $e');
+      _error = e.toString();
+      _isLoadingMore = false;
+      _hasReachedEnd = true;
+      notifyListeners();
+    }
+  }
+
   Future<void> searchApodsList(String query) async {
+    _searchQuery = query;
+
     if (query.isEmpty) {
-      loadApods();
+      _apods.clear();
+      _oldestLoadedDate = null;
+      _hasReachedEnd = false;
+      await loadApods();
       return;
     }
 
@@ -67,6 +163,7 @@ class ApodListViewModel extends ChangeNotifier {
       },
       (apods) {
         _apods = apods;
+        _apods.sort((a, b) => b.date.compareTo(a.date));
         _isLoading = false;
         notifyListeners();
       },
@@ -74,6 +171,6 @@ class ApodListViewModel extends ChangeNotifier {
   }
 
   Future<void> refresh() async {
-    await loadApods();
+    await loadApods(refresh: true);
   }
 }

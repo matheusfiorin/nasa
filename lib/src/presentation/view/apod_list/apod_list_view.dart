@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:nasa/src/core/di/injection_container.dart';
 import 'package:nasa/src/presentation/common/widgets/error_view.dart';
@@ -15,8 +17,12 @@ class ApodListView extends StatefulWidget {
   State<ApodListView> createState() => _ApodListViewState();
 }
 
+Timer? _scrollDebounce;
+
 class _ApodListViewState extends State<ApodListView> {
   late final ApodListViewModel _viewModel;
+  final _scrollController = ScrollController();
+  Timer? _scrollDebounce;
 
   @override
   void initState() {
@@ -26,6 +32,25 @@ class _ApodListViewState extends State<ApodListView> {
       searchApods: sl(),
     );
     _viewModel.loadApods();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollDebounce?.cancel();
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollDebounce?.isActive ?? false) return;
+
+    _scrollDebounce = Timer(const Duration(milliseconds: 150), () {
+      if (_scrollController.position.pixels >=
+          _scrollController.position.maxScrollExtent - 1000) {
+        _viewModel.loadMore();
+      }
+    });
   }
 
   @override
@@ -44,11 +69,11 @@ class _ApodListViewState extends State<ApodListView> {
         ),
         body: Consumer<ApodListViewModel>(
           builder: (context, viewModel, child) {
-            if (viewModel.isLoading) {
+            if (viewModel.isLoading && viewModel.apods.isEmpty) {
               return const LoadingIndicator();
             }
 
-            if (viewModel.error.isNotEmpty) {
+            if (viewModel.error.isNotEmpty && viewModel.apods.isEmpty) {
               return ErrorView(
                 message: viewModel.error,
                 onRetry: viewModel.loadApods,
@@ -58,8 +83,17 @@ class _ApodListViewState extends State<ApodListView> {
             return RefreshIndicator(
               onRefresh: viewModel.refresh,
               child: ListView.builder(
-                itemCount: viewModel.apods.length,
+                controller: _scrollController,
+                itemCount:
+                    viewModel.apods.length + (viewModel.isLoadingMore ? 1 : 0),
                 itemBuilder: (context, index) {
+                  if (index == viewModel.apods.length) {
+                    return const Padding(
+                      padding: EdgeInsets.all(16.0),
+                      child: Center(child: CircularProgressIndicator()),
+                    );
+                  }
+
                   final apod = viewModel.apods[index];
                   return ApodListItem(apod: apod);
                 },

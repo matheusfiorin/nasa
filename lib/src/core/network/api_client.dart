@@ -32,7 +32,6 @@ class ApiClient {
       final response = await _dio.get(path);
       return response;
     } catch (e) {
-      print('ApiClient error: $e');
       rethrow;
     }
   }

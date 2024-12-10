@@ -21,14 +21,7 @@ class ApodListItem extends StatelessWidget {
           child: SizedBox(
             width: 56,
             height: 56,
-            child: CachedNetworkImage(
-              imageUrl: apod.url,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
-            ),
+            child: _buildMediaPreview(),
           ),
         ),
         title: Text(
@@ -44,6 +37,53 @@ class ApodListItem extends StatelessWidget {
             arguments: apod,
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildMediaPreview() {
+    if (apod.mediaType == 'video') {
+      return Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: apod.url,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const Center(
+              child: CircularProgressIndicator(),
+            ),
+            errorWidget: (context, url, error) => Container(
+              color: Colors.grey[200],
+              child: const Icon(Icons.error),
+            ),
+          ),
+          Center(
+            child: Container(
+              padding: const EdgeInsets.all(4),
+              decoration: BoxDecoration(
+                color: Colors.black.withOpacity(0.6),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.play_arrow,
+                color: Colors.white,
+                size: 24,
+              ),
+            ),
+          ),
+        ],
+      );
+    }
+
+    return CachedNetworkImage(
+      imageUrl: apod.url,
+      fit: BoxFit.cover,
+      placeholder: (context, url) => const Center(
+        child: CircularProgressIndicator(),
+      ),
+      errorWidget: (context, url, error) => Container(
+        color: Colors.grey[200],
+        child: const Icon(Icons.error),
       ),
     );
   }

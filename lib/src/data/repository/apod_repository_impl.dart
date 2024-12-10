@@ -33,8 +33,10 @@ class ApodRepositoryImpl implements ApodRepository {
           remoteApods.map((apod) => ApodHiveModel.fromApod(apod)).toList(),
         );
         return Right(remoteApods);
-      } catch (e) {
+      } on ServerException catch (e) {
         return Left(ServerFailure(e.toString()));
+      } catch (e) {
+        return Left(ServerFailure('Unexpected error: ${e.toString()}'));
       }
     } else {
       try {

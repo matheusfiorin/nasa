@@ -14,8 +14,8 @@ class ApodSearchBar extends StatelessWidget {
       padding: const EdgeInsets.all(8.0),
       child: SearchBar(
         hintText: 'Search by title or date...',
-        onChanged: (value) => onSearch(value),
-        leading: const Icon(Icons.search),
+        onSubmitted: onSearch,
+        trailing: const [Icon(Icons.search)],
       ),
     );
   }
