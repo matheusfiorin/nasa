@@ -13,12 +13,12 @@ import '../../../fixtures/fixture_reader.dart';
 void main() {
   late Dio dio;
   late DioAdapter dioAdapter;
-  late ApodRemoteDataSourceImpl dataSource;
+  late ApodRemoteProviderImpl Provider;
 
   setUp(() {
     dio = Dio(BaseOptions());
     dioAdapter = DioAdapter(dio: dio);
-    dataSource = ApodRemoteDataSourceImpl(dio: dio);
+    Provider = ApodRemoteProviderImpl(dio: dio);
   });
 
   group('getApodList', () {
@@ -34,7 +34,7 @@ void main() {
         (server) => server.reply(200, jsonList),
       );
 
-      final result = await dataSource.getApodList(tDate, tEndDate);
+      final result = await Provider.getApodList(tDate, tEndDate);
 
       expect(result, isA<List<ApodModel>>());
       expect(result.length, 1);
@@ -49,7 +49,7 @@ void main() {
         (server) => server.reply(200, jsonMap),
       );
 
-      final result = await dataSource.getApodList(tDate, tEndDate);
+      final result = await Provider.getApodList(tDate, tEndDate);
 
       expect(result, isA<List<ApodModel>>());
       expect(result.length, 1);
@@ -62,7 +62,7 @@ void main() {
         (server) => server.reply(404, 'Not Found'),
       );
 
-      final call = dataSource.getApodList;
+      final call = Provider.getApodList;
 
       expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
     });
@@ -74,7 +74,7 @@ void main() {
         (server) => server.reply(202, 'Accepted'),
       );
 
-      final call = dataSource.getApodList;
+      final call = Provider.getApodList;
 
       expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
     });
@@ -90,7 +90,7 @@ void main() {
         (server) => server.reply(200, json.decode(fixture('apod.json'))),
       );
 
-      final result = await dataSource.getApodByDate(tDate);
+      final result = await Provider.getApodByDate(tDate);
 
       expect(result, isA<ApodModel>());
     });
@@ -102,7 +102,7 @@ void main() {
         (server) => server.reply(404, 'Not Found'),
       );
 
-      final call = dataSource.getApodByDate;
+      final call = Provider.getApodByDate;
 
       expect(() => call(tDate), throwsA(isA<ServerException>()));
     });
@@ -114,7 +114,7 @@ void main() {
         (server) => server.reply(202, 'Accepted'),
       );
 
-      final call = dataSource.getApodByDate;
+      final call = Provider.getApodByDate;
 
       expect(() => call(tDate), throwsA(isA<ServerException>()));
     });

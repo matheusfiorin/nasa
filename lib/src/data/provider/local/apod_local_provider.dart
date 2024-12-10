@@ -2,7 +2,7 @@ import 'package:hive/hive.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/data/model/apod_hive_model.dart';
 
-abstract class ApodLocalDataSource {
+abstract class ApodLocalProvider {
   Future<List<ApodHiveModel>> getApodList();
 
   Future<void> cacheApodList(List<ApodHiveModel> apodList);
@@ -12,10 +12,10 @@ abstract class ApodLocalDataSource {
   Future<void> cacheApod(ApodHiveModel apod);
 }
 
-class ApodLocalDataSourceImpl implements ApodLocalDataSource {
+class ApodLocalProviderImpl implements ApodLocalProvider {
   final Box<ApodHiveModel> apodBox;
 
-  ApodLocalDataSourceImpl({required this.apodBox});
+  ApodLocalProviderImpl({required this.apodBox});
 
   @override
   Future<List<ApodHiveModel>> getApodList() async {

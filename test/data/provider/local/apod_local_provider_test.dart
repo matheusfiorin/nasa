@@ -8,12 +8,12 @@ import 'package:nasa/src/data/provider/local/apod_local_provider.dart';
 class MockHiveBox extends Mock implements Box<ApodHiveModel> {}
 
 void main() {
-  late ApodLocalDataSourceImpl dataSource;
+  late ApodLocalProviderImpl Provider;
   late MockHiveBox mockBox;
 
   setUp(() {
     mockBox = MockHiveBox();
-    dataSource = ApodLocalDataSourceImpl(apodBox: mockBox);
+    Provider = ApodLocalProviderImpl(apodBox: mockBox);
   });
 
   group('getApodList', () {
@@ -28,7 +28,7 @@ void main() {
     test('should return List<ApodHiveModel> from the local storage', () async {
       when(() => mockBox.values).thenReturn([tApodModel]);
 
-      final result = await dataSource.getApodList();
+      final result = await Provider.getApodList();
 
       verify(() => mockBox.values).called(1);
       expect(result, [tApodModel]);
@@ -37,7 +37,7 @@ void main() {
     test('should throw CacheException when there is no cached data', () async {
       when(() => mockBox.values).thenThrow(Exception());
 
-      final call = dataSource.getApodList;
+      final call = Provider.getApodList;
 
       expect(() => call(), throwsA(isA<CacheException>()));
     });
