@@ -26,11 +26,12 @@ void main() {
     const tEndDate = '2024-01-07';
     final tPath = ApiConfig.getApodList(tDate, tEndDate);
 
-    test('should return List<ApodModel> when the response code is 200', () async {
+    test('should return List<ApodModel> when the response code is 200',
+        () async {
       final jsonList = [json.decode(fixture('apod.json'))];
       dioAdapter.onGet(
         tPath,
-            (server) => server.reply(200, jsonList),
+        (server) => server.reply(200, jsonList),
       );
 
       final result = await dataSource.getApodList(tDate, tEndDate);
@@ -39,16 +40,83 @@ void main() {
       expect(result.length, 1);
     });
 
-    test('should throw ServerException when the response code is not 200',
-            () async {
-          dioAdapter.onGet(
-            tPath,
-                (server) => server.reply(404, 'Not Found'),
-          );
+    test(
+        'should return List<ApodModel> when the response code is 200 and receives a map',
+        () async {
+      final jsonMap = json.decode(fixture('apod.json'));
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(200, jsonMap),
+      );
 
-          final call = dataSource.getApodList;
+      final result = await dataSource.getApodList(tDate, tEndDate);
 
-          expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
-        });
+      expect(result, isA<List<ApodModel>>());
+      expect(result.length, 1);
+    });
+
+    test('should throw ServerException when the response code is 404',
+        () async {
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(404, 'Not Found'),
+      );
+
+      final call = dataSource.getApodList;
+
+      expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException when the response code is not 202',
+        () async {
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(202, 'Accepted'),
+      );
+
+      final call = dataSource.getApodList;
+
+      expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
+    });
+  });
+
+  group('searchApod', () {
+    const tDate = '2024-01-01';
+    final tPath = ApiConfig.searchApod(tDate);
+
+    test('should return ApodModel when the response code is 200', () async {
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(200, json.decode(fixture('apod.json'))),
+      );
+
+      final result = await dataSource.getApodByDate(tDate);
+
+      expect(result, isA<ApodModel>());
+    });
+
+    test('should throw ServerException when the response code is 404',
+        () async {
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(404, 'Not Found'),
+      );
+
+      final call = dataSource.getApodByDate;
+
+      expect(() => call(tDate), throwsA(isA<ServerException>()));
+    });
+
+    test('should throw ServerException when the response code is 202',
+        () async {
+      dioAdapter.onGet(
+        tPath,
+        (server) => server.reply(202, 'Accepted'),
+      );
+
+      final call = dataSource.getApodByDate;
+
+      expect(() => call(tDate), throwsA(isA<ServerException>()));
+    });
   });
 }

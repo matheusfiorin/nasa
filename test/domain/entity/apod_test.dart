@@ -37,5 +37,18 @@ void main() {
       final tApod2 = tApod.copyWith(title: 'Different Title');
       expect(tApod, isNot(equals(tApod2)));
     });
+
+    test('should create a valid JSON from a valid instance', () {
+      final jsonApod = tApod.toJson();
+      expect(jsonApod, isA<Map<String, dynamic>>());
+      expect(jsonApod['date'], '2024-01-01');
+    });
+
+    test('should create a valid instance from a valid JSON', () {
+      final jsonApod = tApod.toJson();
+      final apod = Apod.fromJson(jsonApod);
+      expect(apod, isA<Apod>());
+      expect(apod.date, '2024-01-01');
+    });
   });
 }
