@@ -72,7 +72,7 @@ class _ApodDetailScreenState extends State<ApodDetailScreen>
       child: Consumer<ApodDetailController>(
         builder: (context, controller, child) {
           return Scaffold(
-            backgroundColor: theme.colorScheme.background,
+            backgroundColor: theme.colorScheme.surface,
             extendBodyBehindAppBar: true,
             appBar: controller.isFullScreen
                 ? null

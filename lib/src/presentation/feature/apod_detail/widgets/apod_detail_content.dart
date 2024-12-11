@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/presentation/feature/apod_detail/widgets/apod_media_widget.dart';

@@ -105,7 +105,7 @@ class _ApodMediaWidgetState extends State<ApodMediaWidget> {
           playedColor: theme.colorScheme.primary,
           handleColor: theme.colorScheme.primary,
           bufferedColor: theme.colorScheme.primaryContainer,
-          backgroundColor: theme.colorScheme.surfaceVariant,
+          backgroundColor: theme.colorScheme.surfaceContainerHighest,
         ),
         onReady: () {
           debugPrint('Player is ready.');

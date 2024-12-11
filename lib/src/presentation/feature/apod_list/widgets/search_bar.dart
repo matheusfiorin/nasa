@@ -14,23 +14,23 @@ class ApodSearchBar extends StatelessWidget {
 
     return SearchBar(
       hintText: 'Search astronomy pictures...',
-      hintStyle: MaterialStateProperty.all(
+      hintStyle: WidgetStateProperty.all(
         TextStyle(
           color: theme.colorScheme.onSurface.withOpacity(0.7),
           fontSize: 16,
         ),
       ),
-      textStyle: MaterialStateProperty.all(
+      textStyle: WidgetStateProperty.all(
         TextStyle(
           color: theme.colorScheme.onSurface,
           fontSize: 16,
         ),
       ),
-      backgroundColor: MaterialStateProperty.all(Colors.transparent),
-      shadowColor: MaterialStateProperty.all(Colors.transparent),
-      surfaceTintColor: MaterialStateProperty.all(Colors.transparent),
-      overlayColor: MaterialStateProperty.all(Colors.transparent),
-      padding: const MaterialStatePropertyAll<EdgeInsets>(
+      backgroundColor: WidgetStateProperty.all(Colors.transparent),
+      shadowColor: WidgetStateProperty.all(Colors.transparent),
+      surfaceTintColor: WidgetStateProperty.all(Colors.transparent),
+      overlayColor: WidgetStateProperty.all(Colors.transparent),
+      padding: const WidgetStatePropertyAll<EdgeInsets>(
         EdgeInsets.symmetric(horizontal: 16),
       ),
       onSubmitted: onSearch,

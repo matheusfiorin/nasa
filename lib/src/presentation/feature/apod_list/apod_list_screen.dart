@@ -6,7 +6,6 @@ import 'package:nasa/src/presentation/common/widgets/error_view.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_app_bar.dart';
-import 'package:nasa/src/presentation/feature/apod_list/widgets/search_bar.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/apod_list_item.dart';
@@ -22,7 +21,7 @@ class _ApodListScreenState extends State<ApodListScreen> {
   late final ApodListController _controller;
   final _scrollController = ScrollController();
   Timer? _scrollDebounce;
-  bool _showSearch = false;
+  final bool _showSearch = false;
 
   @override
   void initState() {
