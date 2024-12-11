@@ -24,15 +24,33 @@ class ApodRepositoryImpl implements ApodRepository {
   @override
   Future<Either<Failure, List<Apod>>> getApodList(
       DateTime startDate, DateTime endDate) async {
+    try {
+      final localApods = await localProvider.getApodList();
+      final filteredLocalApods =
+          localApods.map((model) => model.toEntity()).where((apod) {
+        final apodDate = DateFormat('yyyy-MM-dd').parse(apod.date);
+        return apodDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
+            apodDate.isBefore(endDate.add(const Duration(days: 1)));
+      }).toList();
+
+      if (filteredLocalApods.isNotEmpty) {
+        return Right(filteredLocalApods);
+      }
+    } catch (e) {
+      // If local fetch fails, we'll continue to try remote
+    }
+
     if (await networkInfo.isConnected) {
       try {
         final remoteApods = await remoteProvider.getApodList(
           Formatter.date(startDate),
           Formatter.date(endDate),
         );
+
         await localProvider.cacheApodList(
           remoteApods.map((apod) => ApodHiveModel.fromApod(apod)).toList(),
         );
+
         return Right(remoteApods);
       } on ServerException catch (e) {
         return Left(ServerFailure(e.toString()));
@@ -40,12 +58,9 @@ class ApodRepositoryImpl implements ApodRepository {
         return Left(ServerFailure('Unexpected error: ${e.toString()}'));
       }
     } else {
-      try {
-        final localApods = await localProvider.getApodList();
-        return Right(localApods.map((model) => model.toEntity()).toList());
-      } on CacheException {
-        return const Left(CacheFailure('No cached data found'));
-      }
+      return const Left(
+        CacheFailure('No cached data found and no internet connection'),
+      );
     }
   }
 
