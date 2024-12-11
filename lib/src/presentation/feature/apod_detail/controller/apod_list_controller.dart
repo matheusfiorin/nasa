@@ -1,10 +1,10 @@
 import 'package:flutter/foundation.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 
-class ApodDetailViewModel extends ChangeNotifier {
+class ApodDetailController extends ChangeNotifier {
   final Apod apod;
 
-  ApodDetailViewModel({
+  ApodDetailController({
     required this.apod,
   });
 

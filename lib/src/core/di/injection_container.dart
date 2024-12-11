@@ -6,7 +6,10 @@ import 'package:nasa/src/data/model/apod_hive_model.dart';
 import 'package:nasa/src/data/provider/local/apod_local_provider.dart';
 import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
 import 'package:nasa/src/data/repository/apod_repository_impl.dart';
+import 'package:nasa/src/data/repository/contracts/apod_local_provider.dart';
+import 'package:nasa/src/data/repository/contracts/apod_remote_provider.dart';
 import 'package:nasa/src/domain/repository/apod_repository.dart';
+import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_detail.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
@@ -20,6 +23,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetApodList(sl()));
   sl.registerLazySingleton(() => GetApodDetail(sl()));
   sl.registerLazySingleton(() => SearchApods(sl()));
+  sl.registerLazySingleton(() => ClearCache(sl()));
 
   // Repository
   sl.registerLazySingleton<ApodRepository>(

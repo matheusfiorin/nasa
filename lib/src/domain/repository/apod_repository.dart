@@ -11,4 +11,6 @@ abstract class ApodRepository {
   Future<Either<Failure, Apod>> getApodByDate(DateTime date);
 
   Future<Either<Failure, List<Apod>>> searchApods(String query);
+
+  Future<void> clearCache();
 }

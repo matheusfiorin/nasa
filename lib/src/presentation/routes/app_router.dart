@@ -1,14 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
-import 'package:nasa/src/presentation/view/apod_detail/apod_list_view.dart';
-import 'package:nasa/src/presentation/view/apod_list/apod_list_view.dart';
+import 'package:nasa/src/presentation/feature/apod_list/apod_list_screen.dart';
+import 'package:nasa/src/presentation/feature/apod_detail/apod_list_view.dart';
 
 class AppRouter {
   static const String initial = '/';
   static const String detail = '/detail';
 
   static final _apodListView = MaterialPageRoute(
-    builder: (_) => const ApodListView(),
+    builder: (_) => const ApodListScreen(),
   );
 
   static Route<dynamic> onGenerateRoute(RouteSettings settings) {

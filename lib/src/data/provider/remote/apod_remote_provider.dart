@@ -1,13 +1,9 @@
 import 'package:dio/dio.dart';
 import 'package:nasa/src/core/config/api_config.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
+import 'package:nasa/src/core/utils/formatter.dart';
 import 'package:nasa/src/data/model/apod_model.dart';
-
-abstract class ApodRemoteProvider {
-  Future<List<ApodModel>> getApodList(String startDate, String endDate);
-
-  Future<ApodModel> getApodByDate(String date);
-}
+import 'package:nasa/src/data/repository/contracts/apod_remote_provider.dart';
 
 class ApodRemoteProviderImpl implements ApodRemoteProvider {
   final Dio dio;
@@ -29,11 +25,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
             if (json is Map<String, dynamic>) {
               // Clean up copyright field
               if (json['copyright'] != null) {
-                json['copyright'] = json['copyright']
-                    .toString()
-                    .trim()
-                    .replaceAll('\n', ' ')
-                    .replaceAll(RegExp(r'\s+'), ' ');
+                json['copyright'] = Formatter.copyright(json['copyright']);
               }
 
               // Check required fields
@@ -47,7 +39,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
               if (json['media_type'] == 'video') {
                 // Use thumbnail_url if available, otherwise use a placeholder
                 json['url'] = json['thumbnail_url'] ??
-                    'https://img.youtube.com/vi/${_extractVideoId(json['url'])}/0.jpg';
+                    'https://img.youtube.com/vi/${Formatter.extractVideoId(json['url'])}/0.jpg';
               } else if (!json.containsKey('url')) {
                 continue; // Skip entries without URLs for other media types
               }
@@ -76,7 +68,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
 
           if (json['media_type'] == 'video') {
             json['url'] = json['thumbnail_url'] ??
-                'https://img.youtube.com/vi/${_extractVideoId(json['url'])}/0.jpg';
+                'https://img.youtube.com/vi/${Formatter.extractVideoId(json['url'])}/0.jpg';
           }
 
           return [ApodModel.fromJson(json)];
@@ -89,18 +81,6 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
       print('Error in getApodList: $e');
       throw ServerException(e.toString());
     }
-  }
-
-  String? _extractVideoId(String? url) {
-    if (url == null) return null;
-
-    // Extract YouTube video ID from URL
-    final regex = RegExp(
-      r'(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|(?:v|e(?:mbed)?)\/|\S*?[?&]v=)|youtu\.be\/)([a-zA-Z0-9_-]{11})',
-    );
-
-    final match = regex.firstMatch(url);
-    return match?.group(1);
   }
 
   @override

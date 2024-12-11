@@ -1,15 +1,18 @@
 import 'package:flutter/foundation.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
+import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
 
-class ApodListViewModel extends ChangeNotifier {
+class ApodListController extends ChangeNotifier {
   final GetApodList getApodList;
   final SearchApods searchApods;
+  final ClearCache clearCache;
 
-  ApodListViewModel({
+  ApodListController({
     required this.getApodList,
     required this.searchApods,
+    required this.clearCache,
   });
 
   List<Apod> _apods = [];
@@ -45,6 +48,7 @@ class ApodListViewModel extends ChangeNotifier {
       _oldestLoadedDate = null;
       _hasReachedEnd = false;
       _apods.clear();
+      await clearCache();
     }
 
     _isLoading = true;
@@ -57,12 +61,12 @@ class ApodListViewModel extends ChangeNotifier {
     final result = await getApodList(startDate, endDate);
 
     result.fold(
-      (failure) {
+          (failure) {
         _error = failure.message;
         _isLoading = false;
         notifyListeners();
       },
-      (newApods) {
+          (newApods) {
         if (newApods.isEmpty) {
           _hasReachedEnd = true;
         } else {
@@ -81,12 +85,10 @@ class ApodListViewModel extends ChangeNotifier {
         _isLoadingMore ||
         _hasReachedEnd ||
         _searchQuery.isNotEmpty) {
-      print('LoadMore blocked by guards');
       return;
     }
 
     if (_oldestLoadedDate == null) {
-      print('No oldest date available');
       _isLoadingMore = false;
       notifyListeners();
       return;
@@ -97,21 +99,19 @@ class ApodListViewModel extends ChangeNotifier {
 
     try {
       final endDate = DateTime(_oldestLoadedDate!.year,
-              _oldestLoadedDate!.month, _oldestLoadedDate!.day)
+          _oldestLoadedDate!.month, _oldestLoadedDate!.day)
           .subtract(const Duration(days: 1));
       final startDate = endDate.subtract(const Duration(days: 15));
-
-      print('Requesting data from $startDate to $endDate');
 
       final result = await getApodList(startDate, endDate);
 
       result.fold(
-        (failure) {
+            (failure) {
           _error = failure.message;
           _isLoadingMore = false;
           notifyListeners();
         },
-        (newApods) {
+            (newApods) {
           if (newApods.isEmpty) {
             _hasReachedEnd = true;
           } else {
@@ -131,7 +131,6 @@ class ApodListViewModel extends ChangeNotifier {
         },
       );
     } catch (e) {
-      print('Error in loadMore: $e');
       _error = e.toString();
       _isLoadingMore = false;
       _hasReachedEnd = true;
@@ -156,12 +155,12 @@ class ApodListViewModel extends ChangeNotifier {
     final result = await searchApods(query);
 
     result.fold(
-      (failure) {
+          (failure) {
         _error = failure.message;
         _isLoading = false;
         notifyListeners();
       },
-      (apods) {
+          (apods) {
         _apods = apods;
         _apods.sort((a, b) => b.date.compareTo(a.date));
         _isLoading = false;
