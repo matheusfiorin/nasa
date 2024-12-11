@@ -1,4 +1,5 @@
 import 'package:intl/intl.dart';
+import 'package:nasa/src/domain/entity/apod.dart';
 
 class Formatter {
   static String copyright(String c) =>
@@ -15,5 +16,11 @@ class Formatter {
 
     final match = regex.firstMatch(url);
     return match?.group(1);
+  }
+
+  static DateTime findOldestDate(List<Apod> apods) {
+    return DateTime.parse(
+      apods.map((a) => a.date).reduce((a, b) => a.compareTo(b) < 0 ? a : b),
+    );
   }
 }

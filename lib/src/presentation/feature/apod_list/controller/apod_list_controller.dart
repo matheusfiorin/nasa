@@ -1,6 +1,7 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
 import 'package:nasa/src/core/error/failures.dart';
+import 'package:nasa/src/core/utils/formatter.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
@@ -37,10 +38,12 @@ class ApodListController extends ChangeNotifier {
       await _resetState();
     }
 
-    _updateState((s) => s.copyWith(
-          isLoading: true,
-          error: '',
-        ));
+    _updateState(
+      (s) => s.copyWith(
+        isLoading: true,
+        error: '',
+      ),
+    );
 
     try {
       final endDate = _state.oldestLoadedDate ?? DateTime.now();
@@ -49,10 +52,12 @@ class ApodListController extends ChangeNotifier {
       final result = await _getApodList(startDate, endDate);
 
       result.fold(
-        (failure) => _updateState((s) => s.copyWith(
-              error: failure.message,
-              isLoading: false,
-            )),
+        (failure) => _updateState(
+          (s) => s.copyWith(
+            error: failure.message,
+            isLoading: false,
+          ),
+        ),
         (newApods) => _handleNewApods(newApods, startDate),
       );
     } catch (e) {
@@ -68,10 +73,12 @@ class ApodListController extends ChangeNotifier {
     try {
       final result = await _fetchMoreApods();
       result.fold(
-        (failure) => _updateState((s) => s.copyWith(
-              error: failure.message,
-              isLoadingMore: false,
-            )),
+        (failure) => _updateState(
+          (s) => s.copyWith(
+            error: failure.message,
+            isLoadingMore: false,
+          ),
+        ),
         (newApods) => _processMoreApods(newApods),
       );
     } catch (e) {
@@ -87,22 +94,28 @@ class ApodListController extends ChangeNotifier {
       return await loadApods();
     }
 
-    _updateState((s) => s.copyWith(
-          isLoading: true,
-          error: '',
-        ));
+    _updateState(
+      (s) => s.copyWith(
+        isLoading: true,
+        error: '',
+      ),
+    );
 
     try {
       final result = await _searchApods(query);
       result.fold(
-        (failure) => _updateState((s) => s.copyWith(
-              error: failure.message,
-              isLoading: false,
-            )),
-        (apods) => _updateState((s) => s.copyWith(
-              apods: _sortApods(apods.toSet().toList()),
-              isLoading: false,
-            )),
+        (failure) => _updateState(
+          (s) => s.copyWith(
+            error: failure.message,
+            isLoading: false,
+          ),
+        ),
+        (apods) => _updateState(
+          (s) => s.copyWith(
+            apods: _sortApods(apods.toSet().toList()),
+            isLoading: false,
+          ),
+        ),
       );
     } catch (e) {
       _handleError(e.toString());
@@ -126,32 +139,40 @@ class ApodListController extends ChangeNotifier {
 
   void _handleNewApods(List<Apod> newApods, DateTime startDate) {
     if (newApods.isEmpty) {
-      _updateState((s) => s.copyWith(
-            hasReachedEnd: true,
-            isLoading: false,
-          ));
+      _updateState(
+        (s) => s.copyWith(
+          hasReachedEnd: true,
+          isLoading: false,
+        ),
+      );
     } else {
-      _updateState((s) => s.copyWith(
-            apods: _sortApods([...s.apods, ...newApods]),
-            oldestLoadedDate: startDate,
-            isLoading: false,
-          ));
+      _updateState(
+        (s) => s.copyWith(
+          apods: _sortApods([...s.apods, ...newApods]),
+          oldestLoadedDate: startDate,
+          isLoading: false,
+        ),
+      );
     }
   }
 
   void _handleError(String error) {
-    _updateState((s) => s.copyWith(
-          error: error,
-          isLoading: false,
-        ));
+    _updateState(
+      (s) => s.copyWith(
+        error: error,
+        isLoading: false,
+      ),
+    );
   }
 
   void _handleLoadMoreError(String error) {
-    _updateState((s) => s.copyWith(
-          error: error,
-          isLoadingMore: false,
-          hasReachedEnd: true,
-        ));
+    _updateState(
+      (s) => s.copyWith(
+        error: error,
+        isLoadingMore: false,
+        hasReachedEnd: true,
+      ),
+    );
   }
 
   Future<Either<Failure, List<Apod>>> _fetchMoreApods() async {
@@ -167,17 +188,21 @@ class ApodListController extends ChangeNotifier {
 
   void _processMoreApods(List<Apod> newApods) {
     if (newApods.isEmpty) {
-      _updateState((s) => s.copyWith(
-            hasReachedEnd: true,
-            isLoadingMore: false,
-          ));
+      _updateState(
+        (s) => s.copyWith(
+          hasReachedEnd: true,
+          isLoadingMore: false,
+        ),
+      );
     } else {
       final uniqueApods = _getUniqueApods([..._state.apods, ...newApods]);
-      _updateState((s) => s.copyWith(
-            apods: uniqueApods,
-            oldestLoadedDate: _findOldestDate(uniqueApods),
-            isLoadingMore: false,
-          ));
+      _updateState(
+        (s) => s.copyWith(
+          apods: uniqueApods,
+          oldestLoadedDate: Formatter.findOldestDate(uniqueApods),
+          isLoadingMore: false,
+        ),
+      );
     }
   }
 
@@ -190,12 +215,6 @@ class ApodListController extends ChangeNotifier {
       Map<String, Apod>.fromEntries(
         apods.map((apod) => MapEntry(apod.date, apod)),
       ).values.toList(),
-    );
-  }
-
-  DateTime _findOldestDate(List<Apod> apods) {
-    return DateTime.parse(
-      apods.map((a) => a.date).reduce((a, b) => a.compareTo(b) < 0 ? a : b),
     );
   }
 }
