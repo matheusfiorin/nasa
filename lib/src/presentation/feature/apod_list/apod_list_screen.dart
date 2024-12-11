@@ -21,7 +21,6 @@ class _ApodListScreenState extends State<ApodListScreen> {
   late final ApodListController _controller;
   final _scrollController = ScrollController();
   Timer? _scrollDebounce;
-  final bool _showSearch = false;
 
   @override
   void initState() {
@@ -56,6 +55,7 @@ class _ApodListScreenState extends State<ApodListScreen> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final screenWidth = MediaQuery.of(context).size.width;
 
     return ChangeNotifierProvider.value(
       value: _controller,
@@ -99,8 +99,17 @@ class _ApodListScreenState extends State<ApodListScreen> {
                       ),
                     ),
                   Expanded(
-                    child: ListView.builder(
+                    child: GridView.builder(
                       controller: _scrollController,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: screenWidth >= 1200
+                            ? 4
+                            : screenWidth >= 900
+                                ? 3
+                                : screenWidth >= 600
+                                    ? 2
+                                    : 1,
+                      ),
                       itemCount:
                           state.apods.length + (state.isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
