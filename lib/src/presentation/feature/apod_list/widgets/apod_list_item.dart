@@ -99,7 +99,6 @@ class ApodListItem extends StatelessWidget {
   }
 
   Widget _buildMediaPreview() {
-    print('thumb: ${apod.thumbnailUrl}');
     return Stack(
       fit: StackFit.expand,
       children: [
