@@ -162,6 +162,7 @@ class ApodListController extends ChangeNotifier {
       },
           (apods) {
         _apods = apods;
+        _apods = _apods.toSet().toList();
         _apods.sort((a, b) => b.date.compareTo(a.date));
         _isLoading = false;
         notifyListeners();

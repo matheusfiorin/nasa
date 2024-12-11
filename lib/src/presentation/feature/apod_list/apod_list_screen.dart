@@ -5,6 +5,7 @@ import 'package:nasa/src/core/di/injection_container.dart';
 import 'package:nasa/src/presentation/common/widgets/error_view.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/search_bar.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/apod_list_item.dart';
@@ -22,6 +23,7 @@ class _ApodListScreenState extends State<ApodListScreen> {
   late final ApodListController _controller;
   final _scrollController = ScrollController();
   Timer? _scrollDebounce;
+  bool _showSearch = false;
 
   @override
   void initState() {
@@ -55,24 +57,63 @@ class _ApodListScreenState extends State<ApodListScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return ChangeNotifierProvider.value(
       value: _controller,
       child: Scaffold(
         appBar: AppBar(
-          title: const Text(
-            'Astronomy Picture of the Day',
-            style: TextStyle(
-              fontSize: 18,
-              fontWeight: FontWeight.w300,
-            ),
+          surfaceTintColor: Colors.transparent,
+          backgroundColor: theme.colorScheme.surface,
+          title: Stack(
+            alignment: Alignment.centerLeft,
+            children: [
+              AnimatedOpacity(
+                opacity: _showSearch ? 0.0 : 1.0,
+                duration: const Duration(milliseconds: 250),
+                child: Text(
+                  'Astronomy Picture of the Day',
+                  style: theme.textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.w500,
+                    color: theme.colorScheme.onSurface,
+                  ),
+                ),
+              ),
+              AnimatedSlide(
+                offset: Offset(_showSearch ? 0 : 1, 0),
+                duration: const Duration(milliseconds: 250),
+                child: AnimatedOpacity(
+                  opacity: _showSearch ? 1.0 : 0.0,
+                  duration: const Duration(milliseconds: 250),
+                  child: ApodSearchBar(
+                    onSearch: (query) => _controller.searchApodsList(query),
+                  ),
+                ),
+              ),
+            ],
           ),
           actions: [
             IconButton(
-              onPressed: () {},
-              icon: const Icon(Icons.search),
+              onPressed: () {
+                setState(() {
+                  _showSearch = !_showSearch;
+                  if (!_showSearch) {
+                    _controller.searchApodsList('');
+                  }
+                });
+              },
+              icon: AnimatedSwitcher(
+                duration: const Duration(milliseconds: 250),
+                child: Icon(
+                  _showSearch ? Icons.close : Icons.search,
+                  key: ValueKey(_showSearch),
+                  color: theme.colorScheme.onSurface,
+                ),
+              ),
             ),
+            const SizedBox(width: 8),
           ],
-          elevation: 2,
+          elevation: 0,
         ),
         body: Consumer<ApodListController>(
           builder: (context, controller, child) {
@@ -100,8 +141,8 @@ class _ApodListScreenState extends State<ApodListScreen> {
                     child: ListView.builder(
                       shrinkWrap: true,
                       controller: _scrollController,
-                      itemCount:
-                      controller.apods.length + (controller.isLoadingMore ? 1 : 0),
+                      itemCount: controller.apods.length +
+                          (controller.isLoadingMore ? 1 : 0),
                       itemBuilder: (context, index) {
                         if (index == controller.apods.length) {
                           return const Padding(
