@@ -11,10 +11,10 @@ class Apod with _$Apod {
     required String title,
     required String explanation,
     required String url,
-    required String mediaType,
+    @JsonKey(name: 'media_type') required String mediaType,
     String? copyright,
-    String? hdUrl,
-    String? thumbnailUrl,
+    @JsonKey(name: 'hdurl') String? hdUrl,
+    @JsonKey(name: 'thumbnail_url') String? thumbnailUrl,
   }) = _Apod;
 
   factory Apod.fromJson(Map<String, dynamic> json) => _$ApodFromJson(json);

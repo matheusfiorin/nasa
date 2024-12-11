@@ -24,9 +24,12 @@ mixin _$Apod {
   String get title => throw _privateConstructorUsedError;
   String get explanation => throw _privateConstructorUsedError;
   String get url => throw _privateConstructorUsedError;
+  @JsonKey(name: 'media_type')
   String get mediaType => throw _privateConstructorUsedError;
   String? get copyright => throw _privateConstructorUsedError;
+  @JsonKey(name: 'hdurl')
   String? get hdUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'thumbnail_url')
   String? get thumbnailUrl => throw _privateConstructorUsedError;
 
   /// Serializes this Apod to a JSON map.
@@ -48,10 +51,10 @@ abstract class $ApodCopyWith<$Res> {
       String title,
       String explanation,
       String url,
-      String mediaType,
+      @JsonKey(name: 'media_type') String mediaType,
       String? copyright,
-      String? hdUrl,
-      String? thumbnailUrl});
+      @JsonKey(name: 'hdurl') String? hdUrl,
+      @JsonKey(name: 'thumbnail_url') String? thumbnailUrl});
 }
 
 /// @nodoc
@@ -127,10 +130,10 @@ abstract class _$$ApodImplCopyWith<$Res> implements $ApodCopyWith<$Res> {
       String title,
       String explanation,
       String url,
-      String mediaType,
+      @JsonKey(name: 'media_type') String mediaType,
       String? copyright,
-      String? hdUrl,
-      String? thumbnailUrl});
+      @JsonKey(name: 'hdurl') String? hdUrl,
+      @JsonKey(name: 'thumbnail_url') String? thumbnailUrl});
 }
 
 /// @nodoc
@@ -199,10 +202,10 @@ class _$ApodImpl implements _Apod {
       required this.title,
       required this.explanation,
       required this.url,
-      required this.mediaType,
+      @JsonKey(name: 'media_type') required this.mediaType,
       this.copyright,
-      this.hdUrl,
-      this.thumbnailUrl});
+      @JsonKey(name: 'hdurl') this.hdUrl,
+      @JsonKey(name: 'thumbnail_url') this.thumbnailUrl});
 
   factory _$ApodImpl.fromJson(Map<String, dynamic> json) =>
       _$$ApodImplFromJson(json);
@@ -216,12 +219,15 @@ class _$ApodImpl implements _Apod {
   @override
   final String url;
   @override
+  @JsonKey(name: 'media_type')
   final String mediaType;
   @override
   final String? copyright;
   @override
+  @JsonKey(name: 'hdurl')
   final String? hdUrl;
   @override
+  @JsonKey(name: 'thumbnail_url')
   final String? thumbnailUrl;
 
   @override
@@ -275,10 +281,10 @@ abstract class _Apod implements Apod {
       required final String title,
       required final String explanation,
       required final String url,
-      required final String mediaType,
+      @JsonKey(name: 'media_type') required final String mediaType,
       final String? copyright,
-      final String? hdUrl,
-      final String? thumbnailUrl}) = _$ApodImpl;
+      @JsonKey(name: 'hdurl') final String? hdUrl,
+      @JsonKey(name: 'thumbnail_url') final String? thumbnailUrl}) = _$ApodImpl;
 
   factory _Apod.fromJson(Map<String, dynamic> json) = _$ApodImpl.fromJson;
 
@@ -291,12 +297,15 @@ abstract class _Apod implements Apod {
   @override
   String get url;
   @override
+  @JsonKey(name: 'media_type')
   String get mediaType;
   @override
   String? get copyright;
   @override
+  @JsonKey(name: 'hdurl')
   String? get hdUrl;
   @override
+  @JsonKey(name: 'thumbnail_url')
   String? get thumbnailUrl;
 
   /// Create a copy of Apod
