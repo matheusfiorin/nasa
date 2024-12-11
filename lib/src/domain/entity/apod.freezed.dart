@@ -27,6 +27,7 @@ mixin _$Apod {
   String get mediaType => throw _privateConstructorUsedError;
   String? get copyright => throw _privateConstructorUsedError;
   String? get hdUrl => throw _privateConstructorUsedError;
+  String? get thumbnailUrl => throw _privateConstructorUsedError;
 
   /// Serializes this Apod to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -49,7 +50,8 @@ abstract class $ApodCopyWith<$Res> {
       String url,
       String mediaType,
       String? copyright,
-      String? hdUrl});
+      String? hdUrl,
+      String? thumbnailUrl});
 }
 
 /// @nodoc
@@ -74,6 +76,7 @@ class _$ApodCopyWithImpl<$Res, $Val extends Apod>
     Object? mediaType = null,
     Object? copyright = freezed,
     Object? hdUrl = freezed,
+    Object? thumbnailUrl = freezed,
   }) {
     return _then(_value.copyWith(
       date: null == date
@@ -104,6 +107,10 @@ class _$ApodCopyWithImpl<$Res, $Val extends Apod>
           ? _value.hdUrl
           : hdUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      thumbnailUrl: freezed == thumbnailUrl
+          ? _value.thumbnailUrl
+          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ) as $Val);
   }
 }
@@ -122,7 +129,8 @@ abstract class _$$ApodImplCopyWith<$Res> implements $ApodCopyWith<$Res> {
       String url,
       String mediaType,
       String? copyright,
-      String? hdUrl});
+      String? hdUrl,
+      String? thumbnailUrl});
 }
 
 /// @nodoc
@@ -144,6 +152,7 @@ class __$$ApodImplCopyWithImpl<$Res>
     Object? mediaType = null,
     Object? copyright = freezed,
     Object? hdUrl = freezed,
+    Object? thumbnailUrl = freezed,
   }) {
     return _then(_$ApodImpl(
       date: null == date
@@ -174,6 +183,10 @@ class __$$ApodImplCopyWithImpl<$Res>
           ? _value.hdUrl
           : hdUrl // ignore: cast_nullable_to_non_nullable
               as String?,
+      thumbnailUrl: freezed == thumbnailUrl
+          ? _value.thumbnailUrl
+          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
+              as String?,
     ));
   }
 }
@@ -188,7 +201,8 @@ class _$ApodImpl implements _Apod {
       required this.url,
       required this.mediaType,
       this.copyright,
-      this.hdUrl});
+      this.hdUrl,
+      this.thumbnailUrl});
 
   factory _$ApodImpl.fromJson(Map<String, dynamic> json) =>
       _$$ApodImplFromJson(json);
@@ -207,10 +221,12 @@ class _$ApodImpl implements _Apod {
   final String? copyright;
   @override
   final String? hdUrl;
+  @override
+  final String? thumbnailUrl;
 
   @override
   String toString() {
-    return 'Apod(date: $date, title: $title, explanation: $explanation, url: $url, mediaType: $mediaType, copyright: $copyright, hdUrl: $hdUrl)';
+    return 'Apod(date: $date, title: $title, explanation: $explanation, url: $url, mediaType: $mediaType, copyright: $copyright, hdUrl: $hdUrl, thumbnailUrl: $thumbnailUrl)';
   }
 
   @override
@@ -227,13 +243,15 @@ class _$ApodImpl implements _Apod {
                 other.mediaType == mediaType) &&
             (identical(other.copyright, copyright) ||
                 other.copyright == copyright) &&
-            (identical(other.hdUrl, hdUrl) || other.hdUrl == hdUrl));
+            (identical(other.hdUrl, hdUrl) || other.hdUrl == hdUrl) &&
+            (identical(other.thumbnailUrl, thumbnailUrl) ||
+                other.thumbnailUrl == thumbnailUrl));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-      runtimeType, date, title, explanation, url, mediaType, copyright, hdUrl);
+  int get hashCode => Object.hash(runtimeType, date, title, explanation, url,
+      mediaType, copyright, hdUrl, thumbnailUrl);
 
   /// Create a copy of Apod
   /// with the given fields replaced by the non-null parameter values.
@@ -259,7 +277,8 @@ abstract class _Apod implements Apod {
       required final String url,
       required final String mediaType,
       final String? copyright,
-      final String? hdUrl}) = _$ApodImpl;
+      final String? hdUrl,
+      final String? thumbnailUrl}) = _$ApodImpl;
 
   factory _Apod.fromJson(Map<String, dynamic> json) = _$ApodImpl.fromJson;
 
@@ -277,6 +296,8 @@ abstract class _Apod implements Apod {
   String? get copyright;
   @override
   String? get hdUrl;
+  @override
+  String? get thumbnailUrl;
 
   /// Create a copy of Apod
   /// with the given fields replaced by the non-null parameter values.

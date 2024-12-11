@@ -1,176 +1,201 @@
+import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
+import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
+import 'package:nasa/src/presentation/feature/apod_list/state/apod_list_state.dart';
 
 class ApodListController extends ChangeNotifier {
-  final GetApodList getApodList;
-  final SearchApods searchApods;
-  final ClearCache clearCache;
+  final GetApodList _getApodList;
+  final SearchApods _searchApods;
+  final ClearCache _clearCache;
+  static const int _daysToLoad = 15;
 
   ApodListController({
-    required this.getApodList,
-    required this.searchApods,
-    required this.clearCache,
-  });
+    required GetApodList getApodList,
+    required SearchApods searchApods,
+    required ClearCache clearCache,
+  })  : _getApodList = getApodList,
+        _searchApods = searchApods,
+        _clearCache = clearCache;
 
-  List<Apod> _apods = [];
+  ApodListState _state = const ApodListState();
 
-  List<Apod> get apods => _apods;
+  ApodListState get state => _state;
 
-  bool _isLoading = false;
-
-  bool get isLoading => _isLoading;
-
-  bool _isLoadingMore = false;
-
-  bool get isLoadingMore => _isLoadingMore;
-
-  String _error = '';
-
-  String get error => _error;
-
-  String _searchQuery = '';
-
-  String get searchQuery => _searchQuery;
-
-  bool _hasReachedEnd = false;
-
-  bool get hasReachedEnd => _hasReachedEnd;
-
-  DateTime? _oldestLoadedDate;
+  void _updateState(ApodListState Function(ApodListState) update) {
+    _state = update(_state);
+    notifyListeners();
+  }
 
   Future<void> loadApods({bool refresh = false}) async {
-    if (_isLoading) return;
+    if (_state.isLoading) return;
 
     if (refresh) {
-      _oldestLoadedDate = null;
-      _hasReachedEnd = false;
-      _apods.clear();
-      await clearCache();
+      await _resetState();
     }
 
-    _isLoading = true;
-    _error = '';
-    notifyListeners();
+    _updateState((s) => s.copyWith(
+          isLoading: true,
+          error: '',
+        ));
 
-    final endDate = _oldestLoadedDate ?? DateTime.now();
-    final startDate = endDate.subtract(const Duration(days: 15));
+    try {
+      final endDate = _state.oldestLoadedDate ?? DateTime.now();
+      final startDate = endDate.subtract(const Duration(days: _daysToLoad));
 
-    final result = await getApodList(startDate, endDate);
+      final result = await _getApodList(startDate, endDate);
 
-    result.fold(
-          (failure) {
-        _error = failure.message;
-        _isLoading = false;
-        notifyListeners();
-      },
-          (newApods) {
-        if (newApods.isEmpty) {
-          _hasReachedEnd = true;
-        } else {
-          _apods.addAll(newApods);
-          _apods.sort((a, b) => b.date.compareTo(a.date));
-          _oldestLoadedDate = startDate;
-        }
-        _isLoading = false;
-        notifyListeners();
-      },
-    );
+      result.fold(
+        (failure) => _updateState((s) => s.copyWith(
+              error: failure.message,
+              isLoading: false,
+            )),
+        (newApods) => _handleNewApods(newApods, startDate),
+      );
+    } catch (e) {
+      _handleError(e.toString());
+    }
   }
 
   Future<void> loadMore() async {
-    if (_isLoading ||
-        _isLoadingMore ||
-        _hasReachedEnd ||
-        _searchQuery.isNotEmpty) {
-      return;
-    }
+    if (_shouldSkipLoadMore) return;
 
-    if (_oldestLoadedDate == null) {
-      _isLoadingMore = false;
-      notifyListeners();
-      return;
-    }
-
-    _isLoadingMore = true;
-    notifyListeners();
+    _updateState((s) => s.copyWith(isLoadingMore: true));
 
     try {
-      final endDate = DateTime(_oldestLoadedDate!.year,
-          _oldestLoadedDate!.month, _oldestLoadedDate!.day)
-          .subtract(const Duration(days: 1));
-      final startDate = endDate.subtract(const Duration(days: 15));
-
-      final result = await getApodList(startDate, endDate);
-
+      final result = await _fetchMoreApods();
       result.fold(
-            (failure) {
-          _error = failure.message;
-          _isLoadingMore = false;
-          notifyListeners();
-        },
-            (newApods) {
-          if (newApods.isEmpty) {
-            _hasReachedEnd = true;
-          } else {
-            final uniqueApods = Map<String, Apod>.fromEntries([
-              ..._apods,
-              ...newApods
-            ].map((apod) => MapEntry(apod.date, apod))).values.toList()
-              ..sort((a, b) => b.date.compareTo(a.date));
-
-            _apods = uniqueApods;
-            _oldestLoadedDate = DateTime.parse(_apods
-                .map((a) => a.date)
-                .reduce((a, b) => a.compareTo(b) < 0 ? a : b));
-          }
-          _isLoadingMore = false;
-          notifyListeners();
-        },
+        (failure) => _updateState((s) => s.copyWith(
+              error: failure.message,
+              isLoadingMore: false,
+            )),
+        (newApods) => _processMoreApods(newApods),
       );
     } catch (e) {
-      _error = e.toString();
-      _isLoadingMore = false;
-      _hasReachedEnd = true;
-      notifyListeners();
+      _handleLoadMoreError(e.toString());
     }
   }
 
   Future<void> searchApodsList(String query) async {
-    _searchQuery = query;
+    _updateState((s) => s.copyWith(searchQuery: query));
 
     if (query.isEmpty) {
-      _apods.clear();
-      _oldestLoadedDate = null;
-      _hasReachedEnd = false;
-      await loadApods();
-      return;
+      await _resetState();
+      return await loadApods();
     }
 
-    _isLoading = true;
-    notifyListeners();
+    _updateState((s) => s.copyWith(
+          isLoading: true,
+          error: '',
+        ));
 
-    final result = await searchApods(query);
+    try {
+      final result = await _searchApods(query);
+      result.fold(
+        (failure) => _updateState((s) => s.copyWith(
+              error: failure.message,
+              isLoading: false,
+            )),
+        (apods) => _updateState((s) => s.copyWith(
+              apods: _sortApods(apods.toSet().toList()),
+              isLoading: false,
+            )),
+      );
+    } catch (e) {
+      _handleError(e.toString());
+    }
+  }
 
-    result.fold(
-          (failure) {
-        _error = failure.message;
-        _isLoading = false;
-        notifyListeners();
-      },
-          (apods) {
-        _apods = apods;
-        _apods = _apods.toSet().toList();
-        _apods.sort((a, b) => b.date.compareTo(a.date));
-        _isLoading = false;
-        notifyListeners();
-      },
+  Future<void> refresh() => loadApods(refresh: true);
+
+  // Private helper methods
+  bool get _shouldSkipLoadMore =>
+      _state.isLoading ||
+      _state.isLoadingMore ||
+      _state.hasReachedEnd ||
+      _state.searchQuery.isNotEmpty ||
+      _state.oldestLoadedDate == null;
+
+  Future<void> _resetState() async {
+    await _clearCache();
+    _updateState((s) => const ApodListState());
+  }
+
+  void _handleNewApods(List<Apod> newApods, DateTime startDate) {
+    if (newApods.isEmpty) {
+      _updateState((s) => s.copyWith(
+            hasReachedEnd: true,
+            isLoading: false,
+          ));
+    } else {
+      _updateState((s) => s.copyWith(
+            apods: _sortApods([...s.apods, ...newApods]),
+            oldestLoadedDate: startDate,
+            isLoading: false,
+          ));
+    }
+  }
+
+  void _handleError(String error) {
+    _updateState((s) => s.copyWith(
+          error: error,
+          isLoading: false,
+        ));
+  }
+
+  void _handleLoadMoreError(String error) {
+    _updateState((s) => s.copyWith(
+          error: error,
+          isLoadingMore: false,
+          hasReachedEnd: true,
+        ));
+  }
+
+  Future<Either<Failure, List<Apod>>> _fetchMoreApods() async {
+    final endDate = DateTime(
+      _state.oldestLoadedDate!.year,
+      _state.oldestLoadedDate!.month,
+      _state.oldestLoadedDate!.day,
+    ).subtract(const Duration(days: 1));
+    final startDate = endDate.subtract(const Duration(days: _daysToLoad));
+
+    return _getApodList(startDate, endDate);
+  }
+
+  void _processMoreApods(List<Apod> newApods) {
+    if (newApods.isEmpty) {
+      _updateState((s) => s.copyWith(
+            hasReachedEnd: true,
+            isLoadingMore: false,
+          ));
+    } else {
+      final uniqueApods = _getUniqueApods([..._state.apods, ...newApods]);
+      _updateState((s) => s.copyWith(
+            apods: uniqueApods,
+            oldestLoadedDate: _findOldestDate(uniqueApods),
+            isLoadingMore: false,
+          ));
+    }
+  }
+
+  List<Apod> _sortApods(List<Apod> apods) {
+    return List<Apod>.from(apods)..sort((a, b) => b.date.compareTo(a.date));
+  }
+
+  List<Apod> _getUniqueApods(List<Apod> apods) {
+    return _sortApods(
+      Map<String, Apod>.fromEntries(
+        apods.map((apod) => MapEntry(apod.date, apod)),
+      ).values.toList(),
     );
   }
 
-  Future<void> refresh() async {
-    await loadApods(refresh: true);
+  DateTime _findOldestDate(List<Apod> apods) {
+    return DateTime.parse(
+      apods.map((a) => a.date).reduce((a, b) => a.compareTo(b) < 0 ? a : b),
+    );
   }
 }
