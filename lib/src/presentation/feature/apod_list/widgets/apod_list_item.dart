@@ -38,7 +38,7 @@ class ApodListItem extends StatelessWidget {
         child: Column(
           children: [
             Expanded(
-              flex: screenWidth >= 900 ? 3 : 4, // Takes 60% of the height
+              flex: screenWidth >= 900 ? 3 : 4,
               child: ClipRRect(
                 borderRadius:
                 const BorderRadius.vertical(top: Radius.circular(12)),
@@ -49,7 +49,7 @@ class ApodListItem extends StatelessWidget {
               ),
             ),
             Expanded(
-              flex: screenWidth >= 900 ? 2 : 1, // Takes 40% of the height
+              flex: screenWidth >= 900 ? 2 : 1,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(

@@ -105,7 +105,7 @@ void main() {
       when(mockBox.deleteAll(any)).thenThrow(Exception());
 
       // act
-      final call = () => localProvider.cacheApodList(testApods);
+      call() => localProvider.cacheApodList(testApods);
 
       // assert
       expect(call(), throwsA(isA<CacheException>()));
@@ -126,7 +126,7 @@ void main() {
       when(mockBox.addAll(any)).thenThrow(Exception());
 
       // act
-      final call = () => localProvider.cacheApodList(testApods);
+      call() => localProvider.cacheApodList(testApods);
 
       // assert
       expect(call(), throwsA(isA<CacheException>()));
@@ -136,7 +136,7 @@ void main() {
   group('getApodByDate', () {
     test('should return ApodHiveModel when found by date', () async {
       // arrange
-      final testDate = '2024-03-15';
+      const testDate = '2024-03-15';
       final testApod = ApodHiveModel(
         date: testDate,
         title: 'Test',
@@ -159,7 +159,7 @@ void main() {
       when(mockBox.values).thenReturn([]);
 
       // act
-      final call = () => localProvider.getApodByDate('2024-03-15');
+      call() => localProvider.getApodByDate('2024-03-15');
 
       // assert
       expect(call(), throwsA(isA<CacheException>()));
@@ -170,7 +170,7 @@ void main() {
       when(mockBox.values).thenThrow(Exception());
 
       // act
-      final call = () => localProvider.getApodByDate('2024-03-15');
+      call() => localProvider.getApodByDate('2024-03-15');
 
       // assert
       expect(call(), throwsA(isA<CacheException>()));
@@ -208,7 +208,7 @@ void main() {
       when(mockBox.put(any, any)).thenThrow(Exception());
 
       // act
-      final call = () => localProvider.cacheApod(testApod);
+      call() => localProvider.cacheApod(testApod);
 
       // assert
       expect(call(), throwsA(isA<CacheException>()));

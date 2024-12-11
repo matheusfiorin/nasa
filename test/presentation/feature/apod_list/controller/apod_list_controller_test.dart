@@ -1,4 +1,3 @@
-import 'dart:async';
 
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -158,7 +157,7 @@ void main() {
       // Clear previous interactions
       clearInteractions(mockGetApodList);
 
-      when(mockGetApodList(any, any)).thenAnswer((_) async => Right([]));
+      when(mockGetApodList(any, any)).thenAnswer((_) async => const Right([]));
 
       // Act
       await controller.loadMore();
