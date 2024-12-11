@@ -21,7 +21,6 @@ void main() {
           url: testUrl,
           mediaType: testMediaType,
           copyright: testCopyright,
-          hdUrl: testHdUrl,
         );
 
         final hiveModel = ApodHiveModel.fromApod(apod);
@@ -32,7 +31,6 @@ void main() {
         expect(hiveModel.url, testUrl);
         expect(hiveModel.mediaType, testMediaType);
         expect(hiveModel.copyright, testCopyright);
-        expect(hiveModel.hdUrl, testHdUrl);
       });
 
       test('should create ApodHiveModel from Apod with only required fields',
@@ -53,7 +51,6 @@ void main() {
         expect(hiveModel.url, testUrl);
         expect(hiveModel.mediaType, testMediaType);
         expect(hiveModel.copyright, null);
-        expect(hiveModel.hdUrl, null);
       });
     });
 
@@ -66,7 +63,6 @@ void main() {
           url: testUrl,
           mediaType: testMediaType,
           copyright: testCopyright,
-          hdUrl: testHdUrl,
         );
 
         final apod = hiveModel.toEntity();
@@ -77,7 +73,6 @@ void main() {
         expect(apod.url, testUrl);
         expect(apod.mediaType, testMediaType);
         expect(apod.copyright, testCopyright);
-        expect(apod.hdUrl, testHdUrl);
       });
 
       test('should convert ApodHiveModel to Apod with only required fields',
@@ -98,7 +93,6 @@ void main() {
         expect(apod.url, testUrl);
         expect(apod.mediaType, testMediaType);
         expect(apod.copyright, null);
-        expect(apod.hdUrl, null);
       });
 
       test('should preserve bidirectional transformation', () {
@@ -109,7 +103,6 @@ void main() {
           url: testUrl,
           mediaType: testMediaType,
           copyright: testCopyright,
-          hdUrl: testHdUrl,
         );
 
         final hiveModel = ApodHiveModel.fromApod(originalApod);
@@ -121,7 +114,6 @@ void main() {
         expect(transformedApod.url, originalApod.url);
         expect(transformedApod.mediaType, originalApod.mediaType);
         expect(transformedApod.copyright, originalApod.copyright);
-        expect(transformedApod.hdUrl, originalApod.hdUrl);
       });
     });
   });

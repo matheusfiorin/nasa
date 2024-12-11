@@ -14,7 +14,6 @@ class ApodHiveModelAdapter extends TypeAdapter<ApodHiveModel> {
       url: reader.readString(),
       mediaType: reader.readString(),
       copyright: reader.readString(),
-      hdUrl: reader.readString(),
     );
   }
 
@@ -26,6 +25,5 @@ class ApodHiveModelAdapter extends TypeAdapter<ApodHiveModel> {
     writer.writeString(obj.url);
     writer.writeString(obj.mediaType);
     writer.writeString(obj.copyright ?? '');
-    writer.writeString(obj.hdUrl ?? '');
   }
 }

@@ -171,4 +171,42 @@ void main() {
       });
     });
   });
+
+  group('extractVideoThumbnail', () {
+    test('should return correct thumbnail URL for YouTube video', () {
+      const input = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      const expected = 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+
+      final result = Formatter.extractVideoThumbnail(input);
+
+      expect(result, expected);
+    });
+
+    test('should work with shortened YouTube URLs', () {
+      const input = 'https://youtu.be/dQw4w9WgXcQ';
+      const expected = 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+
+      final result = Formatter.extractVideoThumbnail(input);
+
+      expect(result, expected);
+    });
+
+    test('should work with embed URLs', () {
+      const input = 'https://www.youtube.com/embed/dQw4w9WgXcQ';
+      const expected = 'https://img.youtube.com/vi/dQw4w9WgXcQ/hqdefault.jpg';
+
+      final result = Formatter.extractVideoThumbnail(input);
+
+      expect(result, expected);
+    });
+
+    test('should return URL with null for invalid YouTube URL', () {
+      const input = 'https://example.com/video';
+      const expected = 'https://img.youtube.com/vi/null/hqdefault.jpg';
+
+      final result = Formatter.extractVideoThumbnail(input);
+
+      expect(result, expected);
+    });
+  });
 }

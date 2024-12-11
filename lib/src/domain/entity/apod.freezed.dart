@@ -27,10 +27,6 @@ mixin _$Apod {
   @JsonKey(name: 'media_type')
   String get mediaType => throw _privateConstructorUsedError;
   String? get copyright => throw _privateConstructorUsedError;
-  @JsonKey(name: 'hdurl')
-  String? get hdUrl => throw _privateConstructorUsedError;
-  @JsonKey(name: 'thumbnail_url')
-  String? get thumbnailUrl => throw _privateConstructorUsedError;
 
   /// Serializes this Apod to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -52,9 +48,7 @@ abstract class $ApodCopyWith<$Res> {
       String explanation,
       String url,
       @JsonKey(name: 'media_type') String mediaType,
-      String? copyright,
-      @JsonKey(name: 'hdurl') String? hdUrl,
-      @JsonKey(name: 'thumbnail_url') String? thumbnailUrl});
+      String? copyright});
 }
 
 /// @nodoc
@@ -78,8 +72,6 @@ class _$ApodCopyWithImpl<$Res, $Val extends Apod>
     Object? url = null,
     Object? mediaType = null,
     Object? copyright = freezed,
-    Object? hdUrl = freezed,
-    Object? thumbnailUrl = freezed,
   }) {
     return _then(_value.copyWith(
       date: null == date
@@ -106,14 +98,6 @@ class _$ApodCopyWithImpl<$Res, $Val extends Apod>
           ? _value.copyright
           : copyright // ignore: cast_nullable_to_non_nullable
               as String?,
-      hdUrl: freezed == hdUrl
-          ? _value.hdUrl
-          : hdUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      thumbnailUrl: freezed == thumbnailUrl
-          ? _value.thumbnailUrl
-          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
     ) as $Val);
   }
 }
@@ -131,9 +115,7 @@ abstract class _$$ApodImplCopyWith<$Res> implements $ApodCopyWith<$Res> {
       String explanation,
       String url,
       @JsonKey(name: 'media_type') String mediaType,
-      String? copyright,
-      @JsonKey(name: 'hdurl') String? hdUrl,
-      @JsonKey(name: 'thumbnail_url') String? thumbnailUrl});
+      String? copyright});
 }
 
 /// @nodoc
@@ -154,8 +136,6 @@ class __$$ApodImplCopyWithImpl<$Res>
     Object? url = null,
     Object? mediaType = null,
     Object? copyright = freezed,
-    Object? hdUrl = freezed,
-    Object? thumbnailUrl = freezed,
   }) {
     return _then(_$ApodImpl(
       date: null == date
@@ -182,14 +162,6 @@ class __$$ApodImplCopyWithImpl<$Res>
           ? _value.copyright
           : copyright // ignore: cast_nullable_to_non_nullable
               as String?,
-      hdUrl: freezed == hdUrl
-          ? _value.hdUrl
-          : hdUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
-      thumbnailUrl: freezed == thumbnailUrl
-          ? _value.thumbnailUrl
-          : thumbnailUrl // ignore: cast_nullable_to_non_nullable
-              as String?,
     ));
   }
 }
@@ -203,9 +175,7 @@ class _$ApodImpl implements _Apod {
       required this.explanation,
       required this.url,
       @JsonKey(name: 'media_type') required this.mediaType,
-      this.copyright,
-      @JsonKey(name: 'hdurl') this.hdUrl,
-      @JsonKey(name: 'thumbnail_url') this.thumbnailUrl});
+      this.copyright});
 
   factory _$ApodImpl.fromJson(Map<String, dynamic> json) =>
       _$$ApodImplFromJson(json);
@@ -223,16 +193,10 @@ class _$ApodImpl implements _Apod {
   final String mediaType;
   @override
   final String? copyright;
-  @override
-  @JsonKey(name: 'hdurl')
-  final String? hdUrl;
-  @override
-  @JsonKey(name: 'thumbnail_url')
-  final String? thumbnailUrl;
 
   @override
   String toString() {
-    return 'Apod(date: $date, title: $title, explanation: $explanation, url: $url, mediaType: $mediaType, copyright: $copyright, hdUrl: $hdUrl, thumbnailUrl: $thumbnailUrl)';
+    return 'Apod(date: $date, title: $title, explanation: $explanation, url: $url, mediaType: $mediaType, copyright: $copyright)';
   }
 
   @override
@@ -248,16 +212,13 @@ class _$ApodImpl implements _Apod {
             (identical(other.mediaType, mediaType) ||
                 other.mediaType == mediaType) &&
             (identical(other.copyright, copyright) ||
-                other.copyright == copyright) &&
-            (identical(other.hdUrl, hdUrl) || other.hdUrl == hdUrl) &&
-            (identical(other.thumbnailUrl, thumbnailUrl) ||
-                other.thumbnailUrl == thumbnailUrl));
+                other.copyright == copyright));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(runtimeType, date, title, explanation, url,
-      mediaType, copyright, hdUrl, thumbnailUrl);
+  int get hashCode => Object.hash(
+      runtimeType, date, title, explanation, url, mediaType, copyright);
 
   /// Create a copy of Apod
   /// with the given fields replaced by the non-null parameter values.
@@ -282,9 +243,7 @@ abstract class _Apod implements Apod {
       required final String explanation,
       required final String url,
       @JsonKey(name: 'media_type') required final String mediaType,
-      final String? copyright,
-      @JsonKey(name: 'hdurl') final String? hdUrl,
-      @JsonKey(name: 'thumbnail_url') final String? thumbnailUrl}) = _$ApodImpl;
+      final String? copyright}) = _$ApodImpl;
 
   factory _Apod.fromJson(Map<String, dynamic> json) = _$ApodImpl.fromJson;
 
@@ -301,12 +260,6 @@ abstract class _Apod implements Apod {
   String get mediaType;
   @override
   String? get copyright;
-  @override
-  @JsonKey(name: 'hdurl')
-  String? get hdUrl;
-  @override
-  @JsonKey(name: 'thumbnail_url')
-  String? get thumbnailUrl;
 
   /// Create a copy of Apod
   /// with the given fields replaced by the non-null parameter values.

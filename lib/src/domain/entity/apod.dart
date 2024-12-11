@@ -13,8 +13,6 @@ class Apod with _$Apod {
     required String url,
     @JsonKey(name: 'media_type') required String mediaType,
     String? copyright,
-    @JsonKey(name: 'hdurl') String? hdUrl,
-    @JsonKey(name: 'thumbnail_url') String? thumbnailUrl,
   }) = _Apod;
 
   factory Apod.fromJson(Map<String, dynamic> json) => _$ApodFromJson(json);
