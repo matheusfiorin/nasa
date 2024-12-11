@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import 'package:nasa/src/core/utils/formatter.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import '../../../routes/app_router.dart';
 
@@ -103,7 +104,9 @@ class ApodListItem extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         CachedNetworkImage(
-          imageUrl: apod.thumbnailUrl ?? apod.url,
+          imageUrl: apod.mediaType == 'video'
+              ? Formatter.extractVideoThumbnail(apod.url)
+              : apod.url,
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Colors.black12,

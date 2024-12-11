@@ -4,6 +4,5 @@
   "explanation": "Test Explanation",
   "url": "https://example.com/image.jpg",
   "media_type": "image",
-  "copyright": "Test Copyright",
-  "hdurl": "https://example.com/hd_image.jpg"
+  "copyright": "Test Copyright"
 }

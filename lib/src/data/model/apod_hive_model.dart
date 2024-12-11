@@ -23,9 +23,6 @@ class ApodHiveModel extends HiveObject {
   @HiveField(5)
   final String? copyright;
 
-  @HiveField(6)
-  final String? hdUrl;
-
   ApodHiveModel({
     required this.date,
     required this.title,
@@ -33,7 +30,6 @@ class ApodHiveModel extends HiveObject {
     required this.url,
     required this.mediaType,
     this.copyright,
-    this.hdUrl,
   });
 
   factory ApodHiveModel.fromApod(Apod apod) {
@@ -44,7 +40,6 @@ class ApodHiveModel extends HiveObject {
       url: apod.url,
       mediaType: apod.mediaType,
       copyright: apod.copyright,
-      hdUrl: apod.hdUrl,
     );
   }
 
@@ -56,7 +51,6 @@ class ApodHiveModel extends HiveObject {
       url: url,
       mediaType: mediaType,
       copyright: copyright,
-      hdUrl: hdUrl,
     );
   }
 }

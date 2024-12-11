@@ -18,6 +18,12 @@ class Formatter {
     return match?.group(1);
   }
 
+  static String extractVideoThumbnail(String url) {
+    final videoId = extractVideoId(url);
+
+    return 'https://img.youtube.com/vi/$videoId/hqdefault.jpg';
+  }
+
   static DateTime findOldestDate(List<Apod> apods) {
     return DateTime.parse(
       apods.map((a) => a.date).reduce((a, b) => a.compareTo(b) < 0 ? a : b),

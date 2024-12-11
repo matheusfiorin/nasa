@@ -23,14 +23,13 @@ class ApodHiveModelAdapter extends TypeAdapter<ApodHiveModel> {
       url: fields[3] as String,
       mediaType: fields[4] as String,
       copyright: fields[5] as String?,
-      hdUrl: fields[6] as String?,
     );
   }
 
   @override
   void write(BinaryWriter writer, ApodHiveModel obj) {
     writer
-      ..writeByte(7)
+      ..writeByte(6)
       ..writeByte(0)
       ..write(obj.date)
       ..writeByte(1)
@@ -42,9 +41,7 @@ class ApodHiveModelAdapter extends TypeAdapter<ApodHiveModel> {
       ..writeByte(4)
       ..write(obj.mediaType)
       ..writeByte(5)
-      ..write(obj.copyright)
-      ..writeByte(6)
-      ..write(obj.hdUrl);
+      ..write(obj.copyright);
   }
 
   @override

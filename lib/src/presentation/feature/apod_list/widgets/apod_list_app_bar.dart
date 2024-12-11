@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/widgets/search_bar.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_search_bar.dart';
 
 class ApodListAppBar extends StatefulWidget implements PreferredSizeWidget {
   final ApodListController controller;

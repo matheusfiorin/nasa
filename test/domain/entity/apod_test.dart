@@ -9,7 +9,6 @@ void main() {
     url: 'https://example.com/image.jpg',
     mediaType: 'image',
     copyright: 'Test Copyright',
-    hdUrl: 'https://example.com/hd_image.jpg',
   );
 
   group('Apod Entity', () {
@@ -26,7 +25,6 @@ void main() {
         url: 'https://example.com/image.jpg',
         mediaType: 'image',
         copyright: 'Test Copyright',
-        hdUrl: 'https://example.com/hd_image.jpg',
       );
 
       expect(tApod, equals(tApod2));
