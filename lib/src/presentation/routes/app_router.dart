@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/presentation/feature/apod_list/apod_list_screen.dart';
-import 'package:nasa/src/presentation/feature/apod_detail/apod_list_view.dart';
+import 'package:nasa/src/presentation/feature/apod_detail/apod_detail_screen.dart';
 
 class AppRouter {
   static const String initial = '/';
@@ -18,7 +18,7 @@ class AppRouter {
       case detail:
         final apod = settings.arguments as Apod;
         return MaterialPageRoute(
-          builder: (_) => ApodDetailView(apod: apod),
+          builder: (_) => ApodDetailScreen(apod: apod),
         );
       default:
         return _apodListView;
