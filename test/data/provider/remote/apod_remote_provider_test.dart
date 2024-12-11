@@ -1,125 +1,255 @@
-import 'dart:convert';
-
 import 'package:dio/dio.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:http_mock_adapter/http_mock_adapter.dart';
+import 'package:mockito/annotations.dart';
+import 'package:mockito/mockito.dart';
 import 'package:nasa/src/core/config/api_config.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/data/model/apod_model.dart';
 import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
 
-import '../../../fixtures/fixture_reader.dart';
+@GenerateNiceMocks([MockSpec<Dio>()])
+import 'apod_remote_provider_test.mocks.dart';
 
 void main() {
-  dotenv.testLoad(fileInput: '''NASA_API_KEY=DUMMY_KEY''');
+  dotenv.testLoad(fileInput: ''' NASA_API_KEY=DEMO_KEY ''');
 
-  late Dio dio;
-  late DioAdapter dioAdapter;
-  late ApodRemoteProviderImpl provider;
+  late ApodRemoteProviderImpl remoteProvider;
+  late MockDio mockDio;
 
   setUp(() {
-    dio = Dio(BaseOptions());
-    dioAdapter = DioAdapter(dio: dio);
-    provider = ApodRemoteProviderImpl(dio: dio);
+    mockDio = MockDio();
+    remoteProvider = ApodRemoteProviderImpl(dio: mockDio);
   });
 
   group('getApodList', () {
-    const tDate = '2024-01-01';
-    const tEndDate = '2024-01-07';
-    final tPath = ApiConfig.getApodListUri(tDate, tEndDate);
+    const startDate = '2024-03-15';
+    const endDate = '2024-03-16';
+    final uri = ApiConfig.getApodListUri(startDate, endDate);
 
-    test('should return List<ApodModel> when the response code is 200',
-        () async {
-      final jsonList = [json.decode(fixture('apod.json'))];
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(200, jsonList),
+    final tApodJson = {
+      'date': '2024-03-15',
+      'title': 'Test Title',
+      'explanation': 'Test Explanation',
+      'url': 'https://example.com/image.jpg',
+      'media_type': 'image',
+      'copyright': 'Test Copyright\nTest',
+    };
+
+    test('should return list of ApodModels when response is a list', () async {
+      final responseData = [tApodJson, tApodJson];
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final result = await provider.getApodList(tDate, tEndDate);
+      final result = await remoteProvider.getApodList(startDate, endDate);
 
-      expect(result, isA<List<ApodModel>>());
+      expect(result.length, 2);
+      expect(result[0], isA<ApodModel>());
+      expect(result[0].copyright, 'Test Copyright Test');
+      verify(mockDio.get(uri));
+    });
+
+    test('should return single ApodModel when response is a map', () async {
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: tApodJson,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
+      );
+
+      final result = await remoteProvider.getApodList(startDate, endDate);
+
       expect(result.length, 1);
+      expect(result[0], isA<ApodModel>());
+      verify(mockDio.get(uri));
     });
 
-    test(
-        'should return List<ApodModel> when the response code is 200 and receives a map',
-        () async {
-      final jsonMap = json.decode(fixture('apod.json'));
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(200, jsonMap),
+    test('should skip invalid items in list response', () async {
+      final responseData = [
+        tApodJson,
+        {'invalid': 'data'},
+        {'date': '2024-03-15', 'title': 'Test'},
+        tApodJson,
+      ];
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final result = await provider.getApodList(tDate, tEndDate);
+      final result = await remoteProvider.getApodList(startDate, endDate);
 
-      expect(result, isA<List<ApodModel>>());
-      expect(result.length, 1);
+      expect(result.length, 2);
+      verify(mockDio.get(uri));
     });
 
-    test('should throw ServerException when the response code is 404',
+    test('should throw ServerException when no valid APODs in response',
         () async {
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(404, 'Not Found'),
+      final responseData = [
+        {'invalid': 'data'},
+        {'date': '2024-03-15'},
+      ];
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: responseData,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final call = provider.getApodList;
+      final call = remoteProvider.getApodList;
 
-      expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
+      expect(
+        () => call(startDate, endDate),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            'No valid APODs in response',
+          ),
+        ),
+      );
     });
 
-    test('should throw ServerException when the response code is not 202',
+    test('should throw ServerException for unexpected response format',
         () async {
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(202, 'Accepted'),
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: 'invalid data',
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final call = provider.getApodList;
+      final call = remoteProvider.getApodList;
 
-      expect(() => call(tDate, tEndDate), throwsA(isA<ServerException>()));
+      expect(
+        () => call(startDate, endDate),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            'Unexpected response format',
+          ),
+        ),
+      );
+    });
+
+    test('should throw ServerException for non-200 status code', () async {
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: null,
+          statusCode: 404,
+          requestOptions: RequestOptions(path: uri),
+        ),
+      );
+
+      final call = remoteProvider.getApodList;
+
+      expect(
+        () => call(startDate, endDate),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            'Server returned 404',
+          ),
+        ),
+      );
+    });
+
+    test('should throw ServerException when Dio throws error', () async {
+      when(mockDio.get(uri)).thenThrow(DioException(
+        requestOptions: RequestOptions(path: uri),
+        error: 'Network error',
+      ));
+
+      final call = remoteProvider.getApodList;
+
+      expect(
+        () => call(startDate, endDate),
+        throwsA(isA<ServerException>()),
+      );
     });
   });
 
-  group('searchApod', () {
-    const tDate = '2024-01-01';
-    final tPath = ApiConfig.searchApodUri(tDate);
+  group('getApodByDate', () {
+    const date = '2024-03-15';
+    final uri = ApiConfig.searchApodUri(date);
 
-    test('should return ApodModel when the response code is 200', () async {
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(200, json.decode(fixture('apod.json'))),
+    final tApodJson = {
+      'date': date,
+      'title': 'Test Title',
+      'explanation': 'Test Explanation',
+      'url': 'https://example.com/image.jpg',
+      'media_type': 'image',
+    };
+
+    test('should return ApodModel for successful response', () async {
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: tApodJson,
+          statusCode: 200,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final result = await provider.getApodByDate(tDate);
+      final result = await remoteProvider.getApodByDate(date);
 
       expect(result, isA<ApodModel>());
+      expect(result.date, date);
+      verify(mockDio.get(uri));
     });
 
-    test('should throw ServerException when the response code is 404',
-        () async {
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(404, 'Not Found'),
+    test('should throw ServerException for non-200 status code', () async {
+      when(mockDio.get(uri)).thenAnswer(
+        (_) async => Response(
+          data: null,
+          statusCode: 404,
+          requestOptions: RequestOptions(path: uri),
+        ),
       );
 
-      final call = provider.getApodByDate;
+      final call = remoteProvider.getApodByDate;
 
-      expect(() => call(tDate), throwsA(isA<ServerException>()));
+      expect(
+        () => call(date),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            'Error in getApodByDate: Server returned 404',
+          ),
+        ),
+      );
     });
 
-    test('should throw ServerException when the response code is 202',
-        () async {
-      dioAdapter.onGet(
-        tPath,
-        (server) => server.reply(202, 'Accepted'),
+    test('should throw ServerException when Dio throws error', () async {
+      when(mockDio.get(uri)).thenThrow(DioException(
+        requestOptions: RequestOptions(path: uri),
+        error: 'Network error',
+      ));
+
+      final call = remoteProvider.getApodByDate;
+
+      expect(
+        () => call(date),
+        throwsA(
+          isA<ServerException>().having(
+            (e) => e.message,
+            'message',
+            contains('Error in getApodByDate'),
+          ),
+        ),
       );
-
-      final call = provider.getApodByDate;
-
-      expect(() => call(tDate), throwsA(isA<ServerException>()));
     });
   });
 }

@@ -8,6 +8,9 @@ rm -rf coverage/lcov.info
 # Run tests with coverage
 flutter test --coverage
 
+# Remove .g. files from coverage
+lcov --remove coverage/lcov.info '**/*.g.dart' '**/*.freezed.dart' -o coverage/lcov.info
+
 # Generate coverage report
 genhtml coverage/lcov.info -o coverage/html
 
