@@ -37,8 +37,7 @@ class ApodRemoteProviderImpl implements ApodRemoteProvider {
 
               // For videos, use thumbnail URL or a placeholder
               if (json['media_type'] == 'video') {
-                // Use thumbnail_url if available, otherwise use a placeholder
-                json['url'] = json['thumbnail_url'] ??
+                json['thumbnail_url'] =
                     'https://img.youtube.com/vi/${Formatter.extractVideoId(json['url'])}/0.jpg';
               } else if (!json.containsKey('url')) {
                 continue; // Skip entries without URLs for other media types

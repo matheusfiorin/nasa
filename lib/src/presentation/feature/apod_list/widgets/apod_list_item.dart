@@ -99,11 +99,12 @@ class ApodListItem extends StatelessWidget {
   }
 
   Widget _buildMediaPreview() {
+    print('thumb: ${apod.thumbnailUrl}');
     return Stack(
       fit: StackFit.expand,
       children: [
         CachedNetworkImage(
-          imageUrl: apod.url,
+          imageUrl: apod.thumbnailUrl ?? apod.url,
           fit: BoxFit.cover,
           placeholder: (context, url) => Container(
             color: Colors.black12,

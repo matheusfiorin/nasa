@@ -14,6 +14,7 @@ class Apod with _$Apod {
     required String mediaType,
     String? copyright,
     String? hdUrl,
+    String? thumbnailUrl,
   }) = _Apod;
 
   factory Apod.fromJson(Map<String, dynamic> json) => _$ApodFromJson(json);

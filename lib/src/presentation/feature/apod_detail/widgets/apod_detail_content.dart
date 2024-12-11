@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
+import 'package:nasa/src/presentation/feature/apod_detail/widgets/apod_media_widget.dart';
 
 class ApodDetailContent extends StatelessWidget {
   final Apod apod;
@@ -16,69 +17,51 @@ class ApodDetailContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: onToggleFullScreen,
-      child: isFullScreen ? _buildFullScreenImage() : _buildDetailView(context),
-    );
-  }
+    final theme = Theme.of(context);
 
-  Widget _buildFullScreenImage() {
-    return CachedNetworkImage(
-      imageUrl: apod.hdUrl ?? apod.url,
-      fit: BoxFit.contain,
-      placeholder: (context, url) => const Center(
-        child: CircularProgressIndicator(),
-      ),
-      errorWidget: (context, url, error) => const Icon(Icons.error),
-    );
-  }
-
-  Widget _buildDetailView(BuildContext context) {
     return SingleChildScrollView(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           AspectRatio(
             aspectRatio: 16 / 9,
-            child: CachedNetworkImage(
-              imageUrl: apod.url,
-              fit: BoxFit.cover,
-              placeholder: (context, url) => const Center(
-                child: CircularProgressIndicator(),
-              ),
-              errorWidget: (context, url, error) => const Icon(Icons.error),
+            child: ApodMediaWidget(
+              apod: apod,
+              isFullScreen: isFullScreen,
+              onToggleFullScreen: onToggleFullScreen,
             ),
           ),
           Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(
-                      apod.date,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                    if (apod.copyright != null) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '© ${apod.copyright}',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
-                  ],
+                Text(
+                  apod.title,
+                  style: theme.textTheme.titleLarge,
                 ),
                 const SizedBox(height: 8),
                 Text(
-                  apod.title,
-                  style: Theme.of(context).textTheme.titleLarge,
+                  apod.date,
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.colorScheme.onSurfaceVariant,
+                  ),
                 ),
                 const SizedBox(height: 16),
                 Text(
                   apod.explanation,
-                  style: Theme.of(context).textTheme.bodyLarge,
+                  style: theme.textTheme.bodyMedium,
                 ),
+                if (apod.copyright != null) ...[
+                  const SizedBox(height: 16),
+                  Text(
+                    '© ${apod.copyright}',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: theme.colorScheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+                const SizedBox(height: 32),
               ],
             ),
           ),
