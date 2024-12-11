@@ -3,7 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/mockito.dart';
 import 'package:mockito/annotations.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/widgets/search_bar.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_search_bar.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_app_bar.dart';
 
 @GenerateNiceMocks([MockSpec<ApodListController>()])
