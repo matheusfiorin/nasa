@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
-import 'package:nasa/src/presentation/feature/apod_detail/controller/apod_list_controller.dart';
+import 'package:nasa/src/presentation/feature/apod_detail/controller/apod_detail_controller.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/apod_detail_content.dart';
 
 class ApodDetailScreen extends StatefulWidget {
   final Apod apod;
+  final ApodDetailController? controller;
 
   const ApodDetailScreen({
     super.key,
     required this.apod,
+    this.controller,
   });
 
   @override
@@ -27,7 +29,7 @@ class _ApodDetailScreenState extends State<ApodDetailScreen>
   @override
   void initState() {
     super.initState();
-    _controller = ApodDetailController(apod: widget.apod);
+    _controller = widget.controller ?? ApodDetailController(apod: widget.apod);
     _setupAnimations();
   }
 
