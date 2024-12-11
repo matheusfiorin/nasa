@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
-import 'package:nasa/src/presentation/view/apod_detail/apod_list_viewmodel.dart';
+import 'package:nasa/src/presentation/feature/apod_detail/controller/apod_list_controller.dart';
 import 'package:provider/provider.dart';
 
 import 'widgets/apod_detail_content.dart';
@@ -18,30 +18,30 @@ class ApodDetailView extends StatefulWidget {
 }
 
 class _ApodDetailViewState extends State<ApodDetailView> {
-  late final ApodDetailViewModel _viewModel;
+  late final ApodDetailController _controller;
 
   @override
   void initState() {
     super.initState();
-    _viewModel = ApodDetailViewModel(apod: widget.apod);
+    _controller = ApodDetailController(apod: widget.apod);
   }
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider.value(
-      value: _viewModel,
-      child: Consumer<ApodDetailViewModel>(
-        builder: (context, viewModel, child) {
+      value: _controller,
+      child: Consumer<ApodDetailController>(
+        builder: (context, controller, child) {
           return Scaffold(
-            appBar: viewModel.isFullScreen
+            appBar: controller.isFullScreen
                 ? null
                 : AppBar(
-              title: Text(viewModel.apod.title),
+              title: Text(controller.apod.title),
             ),
             body: ApodDetailContent(
-              apod: viewModel.apod,
-              isFullScreen: viewModel.isFullScreen,
-              onToggleFullScreen: viewModel.toggleFullScreen,
+              apod: controller.apod,
+              isFullScreen: controller.isFullScreen,
+              onToggleFullScreen: controller.toggleFullScreen,
             ),
           );
         },

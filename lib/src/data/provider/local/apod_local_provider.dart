@@ -1,16 +1,7 @@
 import 'package:hive/hive.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/data/model/apod_hive_model.dart';
-
-abstract class ApodLocalProvider {
-  Future<List<ApodHiveModel>> getApodList();
-
-  Future<void> cacheApodList(List<ApodHiveModel> apodList);
-
-  Future<ApodHiveModel?> getApodByDate(String date);
-
-  Future<void> cacheApod(ApodHiveModel apod);
-}
+import 'package:nasa/src/data/repository/contracts/apod_local_provider.dart';
 
 class ApodLocalProviderImpl implements ApodLocalProvider {
   final Box<ApodHiveModel> apodBox;
@@ -27,9 +18,18 @@ class ApodLocalProviderImpl implements ApodLocalProvider {
   }
 
   @override
-  Future<void> cacheApodList(List<ApodHiveModel> apodList) async {
+  Future<void> clearCache() async {
     try {
       await apodBox.clear();
+    } catch (e) {
+      throw CacheException();
+    }
+  }
+
+  @override
+  Future<void> cacheApodList(List<ApodHiveModel> apodList) async {
+    try {
+      await apodBox.deleteAll(apodList);
       await apodBox.addAll(apodList);
     } catch (e) {
       throw CacheException();

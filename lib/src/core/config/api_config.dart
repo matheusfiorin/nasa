@@ -5,14 +5,12 @@ class ApiConfig {
 
   static String get apiKey => dotenv.env['NASA_API_KEY'] ?? 'DEMO_KEY';
 
-  static const int itemsPerPage = 10;
-
   // API Endpoints
-  static String getApodList(String startDate, String endDate) {
+  static String getApodListUri(String startDate, String endDate) {
     return '$baseUrl?api_key=$apiKey&start_date=$startDate&end_date=$endDate';
   }
 
-  static String searchApod(String date) {
+  static String searchApodUri(String date) {
     return '$baseUrl?api_key=$apiKey&date=$date';
   }
 }

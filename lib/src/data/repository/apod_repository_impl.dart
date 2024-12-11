@@ -3,9 +3,10 @@ import 'package:intl/intl.dart';
 import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/core/network/network_info.dart';
+import 'package:nasa/src/core/utils/formatter.dart';
 import 'package:nasa/src/data/model/apod_hive_model.dart';
-import 'package:nasa/src/data/provider/local/apod_local_provider.dart';
-import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
+import 'package:nasa/src/data/repository/contracts/apod_local_provider.dart';
+import 'package:nasa/src/data/repository/contracts/apod_remote_provider.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/repository/apod_repository.dart';
 
@@ -26,8 +27,8 @@ class ApodRepositoryImpl implements ApodRepository {
     if (await networkInfo.isConnected) {
       try {
         final remoteApods = await remoteProvider.getApodList(
-          DateFormat('yyyy-MM-dd').format(startDate),
-          DateFormat('yyyy-MM-dd').format(endDate),
+          Formatter.date(startDate),
+          Formatter.date(endDate),
         );
         await localProvider.cacheApodList(
           remoteApods.map((apod) => ApodHiveModel.fromApod(apod)).toList(),
@@ -50,7 +51,7 @@ class ApodRepositoryImpl implements ApodRepository {
 
   @override
   Future<Either<Failure, Apod>> getApodByDate(DateTime date) async {
-    final dateStr = DateFormat('yyyy-MM-dd').format(date);
+    final dateStr = Formatter.date(date);
     if (await networkInfo.isConnected) {
       try {
         final remoteApod = await remoteProvider.getApodByDate(dateStr);
@@ -82,6 +83,15 @@ class ApodRepositoryImpl implements ApodRepository {
       return Right(filteredApods);
     } on CacheException {
       return const Left(CacheFailure('No cached data found'));
+    }
+  }
+
+  @override
+  Future<void> clearCache() async {
+    try {
+      await localProvider.clearCache();
+    } on CacheException {
+      throw const CacheFailure('Failed to clear cache');
     }
   }
 }

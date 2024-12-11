@@ -22,7 +22,7 @@ Map<String, dynamic> _$$ApodImplToJson(_$ApodImpl instance) =>
       'title': instance.title,
       'explanation': instance.explanation,
       'url': instance.url,
-      'mediaType': instance.mediaType,
+      'media_type': instance.mediaType,
       'copyright': instance.copyright,
-      'hdUrl': instance.hdUrl,
+      'hdurl': instance.hdUrl,
     };
