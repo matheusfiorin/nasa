@@ -153,3 +153,18 @@ This project mainly uses the following dependencies:
   to deal with immutable modeling in a functional way.
 - [hive](https://pub.dev/packages/hive) - A lightweight and blazing fast key-value database written
   in pure Dart, which handles the local storage of the application.
+
+## Preview
+
+<table>
+  <tr>
+    <th>iOS light theme</th>
+    <th>iOS dark theme</th>
+    <th>Video playing</th>
+  </tr>
+  <tr>
+    <td><img src="https://github.com/user-attachments/assets/db254ace-c7fa-4b26-a63c-2d2250fbd1d5" width="300" /></td>
+    <td><img src="https://github.com/user-attachments/assets/713bff59-37d4-4055-9ffa-2a8018beb804" width="300" /></td>
+    <td><img src="https://github.com/user-attachments/assets/74543902-565f-473a-9218-f5bebd675ead" width="300" /></td>
+  </tr>
+</table>
