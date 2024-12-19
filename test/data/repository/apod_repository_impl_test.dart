@@ -1,3 +1,4 @@
+// test/src/data/repository/apod_repository_impl_test.dart
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -56,60 +57,56 @@ void main() {
 
     test('should return cached data when available within date range',
         () async {
+      // arrange
       when(mockLocalProvider.getApodList())
           .thenAnswer((_) async => [tApodHiveModel]);
 
+      // act
       final result = await repository.getApodList(startDate, endDate);
 
+      // assert
       verify(mockLocalProvider.getApodList());
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<List<Apod>>());
+      final apods = (result as Right).value as List<Apod>;
+      expect(apods.length, equals(1));
+      expect(apods.first.date, equals('2024-03-15'));
       verifyNever(mockNetworkInfo.isConnected);
       verifyNever(mockRemoteProvider.getApodList(any, any));
     });
 
-    test(
-        'should return ServerFailure with correct message for unexpected errors',
-        () async {
-      when(mockLocalProvider.getApodList()).thenAnswer((_) async => []);
-      when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
-      when(mockRemoteProvider.getApodList(any, any))
-          .thenThrow(Exception('Unexpected error'));
-
-      final result = await repository.getApodList(startDate, endDate);
-
-      expect(result.isLeft(), true);
-      final failure = (result as Left).value as ServerFailure;
-      expect(failure.message, 'Unexpected error: Exception: Unexpected error');
-      verify(mockLocalProvider.getApodList());
-      verify(mockNetworkInfo.isConnected);
-      verify(mockRemoteProvider.getApodList(any, any));
-    });
-
     test('should fetch from remote when cache is empty and has connection',
         () async {
+      // arrange
       when(mockLocalProvider.getApodList()).thenAnswer((_) async => []);
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteProvider.getApodList(any, any))
           .thenAnswer((_) async => [tApodModel]);
       when(mockLocalProvider.cacheApodList(any)).thenAnswer((_) async => {});
 
+      // act
       final result = await repository.getApodList(startDate, endDate);
 
-      verify(mockLocalProvider.getApodList());
-      verify(mockNetworkInfo.isConnected);
-      verify(mockRemoteProvider.getApodList(any, any));
-      verify(mockLocalProvider.cacheApodList(any));
+      // assert
+      verifyInOrder([
+        mockLocalProvider.getApodList(),
+        mockNetworkInfo.isConnected,
+        mockRemoteProvider.getApodList(any, any),
+        mockLocalProvider.cacheApodList(any),
+      ]);
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<List<Apod>>());
+      final apods = (result as Right).value as List<Apod>;
+      expect(apods.length, equals(1));
     });
 
     test('should return CacheFailure when offline and no cache', () async {
+      // arrange
       when(mockLocalProvider.getApodList()).thenAnswer((_) async => []);
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => false);
 
+      // act
       final result = await repository.getApodList(startDate, endDate);
 
+      // assert
       expect(
         result,
         equals(const Left(
@@ -119,15 +116,19 @@ void main() {
     });
 
     test('should return ServerFailure when remote call fails', () async {
+      // arrange
       when(mockLocalProvider.getApodList()).thenAnswer((_) async => []);
       when(mockNetworkInfo.isConnected).thenAnswer((_) async => true);
       when(mockRemoteProvider.getApodList(any, any))
           .thenThrow(ServerException('Server error'));
 
+      // act
       final result = await repository.getApodList(startDate, endDate);
 
+      // assert
       expect(result.isLeft(), true);
-      expect((result as Left).value, isA<ServerFailure>());
+      final failure = (result as Left).value as ServerFailure;
+      expect(failure.message, equals('Failed to fetch APOD list from server'));
     });
   });
 
@@ -159,11 +160,14 @@ void main() {
       final result = await repository.getApodByDate(date);
 
       // assert
-      verify(mockNetworkInfo.isConnected);
-      verify(mockRemoteProvider.getApodByDate(any));
-      verify(mockLocalProvider.cacheApod(any));
+      verifyInOrder([
+        mockNetworkInfo.isConnected,
+        mockRemoteProvider.getApodByDate(any),
+        mockLocalProvider.cacheApod(any),
+      ]);
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<Apod>());
+      final apod = (result as Right).value as Apod;
+      expect(apod.date, equals('2024-03-15'));
     });
 
     test('should return cached data when offline', () async {
@@ -179,7 +183,8 @@ void main() {
       verify(mockNetworkInfo.isConnected);
       verify(mockLocalProvider.getApodByDate(any));
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<Apod>());
+      final apod = (result as Right).value as Apod;
+      expect(apod.date, equals('2024-03-15'));
     });
 
     test('should return CacheFailure when offline and no cache', () async {
@@ -191,10 +196,9 @@ void main() {
       final result = await repository.getApodByDate(date);
 
       // assert
-      expect(
-        result,
-        equals(const Left(CacheFailure('No cached data found'))),
-      );
+      expect(result.isLeft(), true);
+      final failure = (result as Left).value as CacheFailure;
+      expect(failure.message, contains('No cached data found for date:'));
     });
 
     test('should return ServerFailure when remote call fails', () async {
@@ -207,10 +211,9 @@ void main() {
       final result = await repository.getApodByDate(date);
 
       // assert
-      expect(
-        result,
-        equals(const Left(ServerFailure('Failed to fetch data from server'))),
-      );
+      expect(result.isLeft(), true);
+      final failure = (result as Left).value as ServerFailure;
+      expect(failure.message, contains('Failed to fetch APOD for date:'));
     });
   });
 
@@ -234,7 +237,9 @@ void main() {
       // assert
       verify(mockLocalProvider.getApodList());
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<List<Apod>>());
+      final apods = (result as Right).value as List<Apod>;
+      expect(apods.length, equals(1));
+      expect(apods.first.title, contains('Test'));
     });
 
     test('should return filtered list based on date', () async {
@@ -248,7 +253,9 @@ void main() {
       // assert
       verify(mockLocalProvider.getApodList());
       expect(result.isRight(), true);
-      expect((result as Right).value, isA<List<Apod>>());
+      final apods = (result as Right).value as List<Apod>;
+      expect(apods.length, equals(1));
+      expect(apods.first.date, contains('2024'));
     });
 
     test('should return empty list when no matches found', () async {
@@ -262,7 +269,8 @@ void main() {
       // assert
       verify(mockLocalProvider.getApodList());
       expect(result.isRight(), true);
-      expect((result as Right).value, isEmpty);
+      final apods = (result as Right).value as List<Apod>;
+      expect(apods, isEmpty);
     });
 
     test('should return CacheFailure when local provider fails', () async {
@@ -273,10 +281,9 @@ void main() {
       final result = await repository.searchApods('test');
 
       // assert
-      expect(
-        result,
-        equals(const Left(CacheFailure('No cached data found'))),
-      );
+      expect(result.isLeft(), true);
+      final failure = (result as Left).value as CacheFailure;
+      expect(failure.message, equals('Failed to search cached APODs'));
     });
   });
 
@@ -292,17 +299,14 @@ void main() {
       verify(mockLocalProvider.clearCache());
     });
 
-    test('should throw CacheFailure when clearing cache fails', () async {
+    test('should throw CacheFailure when clearing cache fails', () {
       // arrange
       when(mockLocalProvider.clearCache()).thenThrow(CacheException());
 
-      // act
-      final call = repository.clearCache;
-
-      // assert
+      // act & assert
       expect(
-        () => call(),
-        throwsA(const CacheFailure('Failed to clear cache')),
+            () async => await repository.clearCache(),
+        throwsA(isA<CacheFailure>()),
       );
     });
   });

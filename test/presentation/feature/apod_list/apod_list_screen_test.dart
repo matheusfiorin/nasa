@@ -92,10 +92,12 @@ void main() {
 
     testWidgets('can refresh the list', (WidgetTester tester) async {
       int callCount = 0;
-      when(mockGetApodList(any, any)).thenAnswer((_) {
+      when(mockGetApodList(any, any)).thenAnswer((_) async {
         callCount++;
-        return Future.value(Right(testApods));
+        return Right(testApods);
       });
+
+      when(mockClearCache()).thenAnswer((_) async => Right(null));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pump();
@@ -103,13 +105,20 @@ void main() {
 
       expect(callCount, 1); // Initial load
 
-      await tester.fling(find.byType(ListView), const Offset(0, 300), 1000);
-      await tester.pump();
-      await tester.pump(const Duration(milliseconds: 500));
-      await tester.pump(const Duration(seconds: 2));
+      // Get the RefreshIndicator widget
+      final RefreshIndicator refreshIndicator = tester.widget<RefreshIndicator>(
+        find.byType(RefreshIndicator),
+      );
 
+      // Trigger refresh directly
+      await refreshIndicator.onRefresh();
+
+      // Wait for all operations to complete
+      await tester.pump();
+      await tester.pump(const Duration(seconds: 1));
+
+      expect(callCount, 2); // Should be called twice
       verify(mockClearCache()).called(1);
-      expect(callCount, 2);
     });
 
     group('Search functionality', () {
