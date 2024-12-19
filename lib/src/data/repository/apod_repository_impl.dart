@@ -1,112 +1,109 @@
 import 'package:dartz/dartz.dart';
-import 'package:intl/intl.dart';
-import 'package:nasa/src/core/error/exceptions.dart';
+import 'package:nasa/src/core/error/error_handler.dart';
 import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/core/network/network_info.dart';
 import 'package:nasa/src/core/utils/formatter.dart';
-import 'package:nasa/src/data/model/apod_hive_model.dart';
+import 'package:nasa/src/data/filter/apod_filter.dart';
+import 'package:nasa/src/data/mapper/apod_mapper.dart';
 import 'package:nasa/src/data/repository/contracts/apod_local_provider.dart';
 import 'package:nasa/src/data/repository/contracts/apod_remote_provider.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/repository/apod_repository.dart';
 
 class ApodRepositoryImpl implements ApodRepository {
-  final ApodRemoteProvider remoteProvider;
-  final ApodLocalProvider localProvider;
-  final NetworkInfo networkInfo;
+  final ApodRemoteProvider _remoteProvider;
+  final ApodLocalProvider _localProvider;
+  final NetworkInfo _networkInfo;
 
   ApodRepositoryImpl({
-    required this.remoteProvider,
-    required this.localProvider,
-    required this.networkInfo,
-  });
+    required ApodRemoteProvider remoteProvider,
+    required ApodLocalProvider localProvider,
+    required NetworkInfo networkInfo,
+  })  : _remoteProvider = remoteProvider,
+        _localProvider = localProvider,
+        _networkInfo = networkInfo;
 
   @override
   Future<Either<Failure, List<Apod>>> getApodList(
-      DateTime startDate, DateTime endDate) async {
+    DateTime startDate,
+    DateTime endDate,
+  ) async {
+    // Try to get from local storage first
     try {
-      final localApods = await localProvider.getApodList();
-      final filteredLocalApods =
-          localApods.map((model) => model.toEntity()).where((apod) {
-        final apodDate = DateFormat('yyyy-MM-dd').parse(apod.date);
-        return apodDate.isAfter(startDate.subtract(const Duration(days: 1))) &&
-            apodDate.isBefore(endDate.add(const Duration(days: 1)));
-      }).toList();
+      final localApods = await _localProvider.getApodList();
+      final entities = ApodMapper.toEntityList(localApods);
+      final filteredApods =
+          ApodFilter.byDateRange(entities, startDate, endDate);
 
-      if (filteredLocalApods.isNotEmpty) {
-        return Right(filteredLocalApods);
+      if (filteredApods.isNotEmpty) {
+        return Right(filteredApods);
       }
-    } catch (e) {
-      // If local fetch fails, we'll continue to try remote
+    } catch (_) {
+      // Continue to remote if local fails
     }
 
-    if (await networkInfo.isConnected) {
-      try {
-        final remoteApods = await remoteProvider.getApodList(
-          Formatter.date(startDate),
-          Formatter.date(endDate),
-        );
+    // Get from remote if necessary
+    if (await _networkInfo.isConnected) {
+      return ErrorHandler.handleRepositoryCall(
+        call: () async {
+          final remoteApods = await _remoteProvider.getApodList(
+            Formatter.date(startDate),
+            Formatter.date(endDate),
+          );
 
-        await localProvider.cacheApodList(
-          remoteApods.map((apod) => ApodHiveModel.fromApod(apod)).toList(),
-        );
+          await _localProvider.cacheApodList(
+            ApodMapper.toHiveModelList(remoteApods),
+          );
 
-        return Right(remoteApods);
-      } on ServerException catch (e) {
-        return Left(ServerFailure(e.toString()));
-      } catch (e) {
-        return Left(ServerFailure('Unexpected error: ${e.toString()}'));
-      }
-    } else {
-      return const Left(
-        CacheFailure('No cached data found and no internet connection'),
+          return remoteApods;
+        },
+        serverErrorMessage: 'Failed to fetch APOD list from server',
       );
     }
+
+    return const Left(
+      CacheFailure('No cached data found and no internet connection'),
+    );
   }
 
   @override
   Future<Either<Failure, Apod>> getApodByDate(DateTime date) async {
     final dateStr = Formatter.date(date);
-    if (await networkInfo.isConnected) {
-      try {
-        final remoteApod = await remoteProvider.getApodByDate(dateStr);
-        await localProvider.cacheApod(ApodHiveModel.fromApod(remoteApod));
-        return Right(remoteApod);
-      } on ServerException {
-        return const Left(ServerFailure('Failed to fetch data from server'));
-      }
-    } else {
-      try {
-        final localApod = await localProvider.getApodByDate(dateStr);
-        return Right(localApod!.toEntity());
-      } on CacheException {
-        return const Left(CacheFailure('No cached data found'));
-      }
+
+    if (await _networkInfo.isConnected) {
+      return ErrorHandler.handleRepositoryCall(
+        call: () async {
+          final remoteApod = await _remoteProvider.getApodByDate(dateStr);
+          await _localProvider.cacheApod(ApodMapper.toHiveModel(remoteApod));
+          return remoteApod;
+        },
+        serverErrorMessage: 'Failed to fetch APOD for date: $dateStr',
+      );
     }
+
+    return ErrorHandler.handleRepositoryCall(
+      call: () async {
+        final localApod = await _localProvider.getApodByDate(dateStr);
+        return ApodMapper.toEntity(localApod!);
+      },
+      cacheErrorMessage: 'No cached data found for date: $dateStr',
+    );
   }
 
   @override
-  Future<Either<Failure, List<Apod>>> searchApods(String query) async {
-    try {
-      final localApods = await localProvider.getApodList();
-      final filteredApods = localApods
-          .map((model) => model.toEntity())
-          .where((apod) =>
-              apod.title.toLowerCase().contains(query.toLowerCase()) ||
-              apod.date.contains(query))
-          .toList();
-      return Right(filteredApods);
-    } on CacheException {
-      return const Left(CacheFailure('No cached data found'));
-    }
+  Future<Either<Failure, List<Apod>>> searchApods(String query) {
+    return ErrorHandler.handleRepositoryCall(
+      call: () async {
+        final localApods = await _localProvider.getApodList();
+        final entities = ApodMapper.toEntityList(localApods);
+        return ApodFilter.bySearchQuery(entities, query);
+      },
+      cacheErrorMessage: 'Failed to search cached APODs',
+    );
   }
 
   @override
   Future<void> clearCache() async {
-    try {
-      await localProvider.clearCache();
-    } on CacheException {
-      throw const CacheFailure('Failed to clear cache');
-    }
+    await _localProvider.clearCache();
   }
 }
