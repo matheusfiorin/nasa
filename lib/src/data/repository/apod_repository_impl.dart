@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:nasa/src/core/error/error_handler.dart';
+import 'package:nasa/src/core/error/exceptions.dart';
 import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/core/network/network_info.dart';
 import 'package:nasa/src/core/utils/formatter.dart';
@@ -19,21 +20,20 @@ class ApodRepositoryImpl implements ApodRepository {
     required ApodRemoteProvider remoteProvider,
     required ApodLocalProvider localProvider,
     required NetworkInfo networkInfo,
-  })  : _remoteProvider = remoteProvider,
+  })
+      : _remoteProvider = remoteProvider,
         _localProvider = localProvider,
         _networkInfo = networkInfo;
 
   @override
-  Future<Either<Failure, List<Apod>>> getApodList(
-    DateTime startDate,
-    DateTime endDate,
-  ) async {
+  Future<Either<Failure, List<Apod>>> getApodList(DateTime startDate,
+      DateTime endDate,) async {
     // Try to get from local storage first
     try {
       final localApods = await _localProvider.getApodList();
       final entities = ApodMapper.toEntityList(localApods);
       final filteredApods =
-          ApodFilter.byDateRange(entities, startDate, endDate);
+      ApodFilter.byDateRange(entities, startDate, endDate);
 
       if (filteredApods.isNotEmpty) {
         return Right(filteredApods);
@@ -104,6 +104,10 @@ class ApodRepositoryImpl implements ApodRepository {
 
   @override
   Future<void> clearCache() async {
-    await _localProvider.clearCache();
+    try {
+      await _localProvider.clearCache();
+    } on CacheException {
+      throw const CacheFailure('Failed to clear cache');
+    }
   }
 }
