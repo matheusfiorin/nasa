@@ -1,25 +1,29 @@
+// lib/src/presentation/feature/apod_list/widgets/apod_list_item.dart
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:nasa/src/core/utils/formatter.dart';
-import 'package:nasa/src/domain/entity/apod.dart';
+import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
+import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
+
 import '../../../routes/app_router.dart';
 
 class ApodListItem extends StatelessWidget {
-  final Apod apod;
+  final ApodUiModel apod;
+  final NavigationService navigationService;
 
   const ApodListItem({
     super.key,
     required this.apod,
+    required this.navigationService,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
 
     return Card(
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       elevation: 0,
+      clipBehavior: Clip.antiAlias,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
         side: BorderSide(
@@ -27,150 +31,244 @@ class ApodListItem extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Navigator.pushNamed(
-            context,
-            AppRouter.detail,
-            arguments: apod,
-          );
-        },
-        child: Column(
-          children: [
-            Expanded(
-              flex: screenWidth >= 900 ? 3 : 4,
-              child: ClipRRect(
-                borderRadius:
-                const BorderRadius.vertical(top: Radius.circular(12)),
-                child: SizedBox(
-                  width: double.infinity,
-                  child: _buildMediaPreview(),
-                ),
+        onTap: () => navigationService.navigateTo(
+          context,
+          AppRouter.detail,
+          arguments: apod.toEntity(),
+        ),
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              AspectRatio(
+                aspectRatio: 16 / 9,
+                child: _buildMediaPreview(),
               ),
-            ),
-            Expanded(
-              flex: screenWidth >= 900 ? 2 : 1,
-              child: Padding(
+              Padding(
                 padding: const EdgeInsets.all(12),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
                     Text(
                       apod.title,
                       style: theme.textTheme.titleMedium?.copyWith(
                         fontWeight: FontWeight.w600,
                       ),
-                      maxLines: 2,
-                      overflow: TextOverflow.ellipsis,
                     ),
-                    Row(
-                      children: [
-                        Icon(
-                          Icons.calendar_today_outlined,
-                          size: 14,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          apod.date,
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                        const SizedBox(width: 12),
-                        Icon(
-                          apod.mediaType == 'video'
-                              ? Icons.play_circle_outline
-                              : Icons.photo_outlined,
-                          size: 14,
-                          color: theme.colorScheme.onSurfaceVariant,
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          apod.mediaType.toUpperCase(),
-                          style: theme.textTheme.bodySmall?.copyWith(
-                            color: theme.colorScheme.onSurfaceVariant,
-                          ),
-                        ),
-                      ],
-                    ),
+                    const SizedBox(height: 8),
+                    _buildMetadata(context),
                   ],
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
   }
 
   Widget _buildMediaPreview() {
-    return Stack(
-      fit: StackFit.expand,
-      children: [
-        CachedNetworkImage(
-          imageUrl: apod.mediaType == 'video'
-              ? Formatter.extractVideoThumbnail(apod.url)
-              : apod.url,
-          fit: BoxFit.cover,
-          placeholder: (context, url) =>
-              Container(
-                color: Colors.black12,
-                child: const Center(
-                  child: CircularProgressIndicator(
-                    strokeWidth: 2,
-                  ),
-                ),
-              ),
-          errorWidget: (context, url, error) =>
-              Container(
-                color: Colors.black12,
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.error_outline,
-                      color: Theme
-                          .of(context)
-                          .colorScheme
-                          .error,
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      'Error loading image',
-                      style: Theme
-                          .of(context)
-                          .textTheme
-                          .bodySmall,
-                    ),
-                  ],
-                ),
-              ),
-        ),
-        if (apod.mediaType == 'video')
-          Positioned.fill(
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [
-                    Colors.black.withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-              child: const Center(
-                child: Icon(
-                  Icons.play_circle_outline,
-                  color: Colors.white,
-                  size: 48,
-                ),
-              ),
-            ),
+    return ClipRRect(
+      child: Stack(
+        fit: StackFit.passthrough,
+        children: [
+          CachedNetworkImage(
+            imageUrl: apod.thumbnailUrl ?? apod.imageUrl,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const _LoadingPlaceholder(),
+            errorWidget: (context, url, error) => const _ErrorPlaceholder(),
           ),
+          if (apod.isVideo) const _VideoOverlay(),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMetadata(BuildContext context) {
+    final theme = Theme.of(context);
+    final textStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final iconColor = theme.colorScheme.onSurfaceVariant;
+
+    return DefaultTextStyle(
+      style: textStyle!,
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(Icons.calendar_today_outlined, size: 14, color: iconColor),
+          const SizedBox(width: 4),
+          Text(apod.date),
+          const SizedBox(width: 12),
+          Icon(
+            apod.isVideo ? Icons.play_circle_outline : Icons.photo_outlined,
+            size: 14,
+            color: iconColor,
+          ),
+          const SizedBox(width: 4),
+          Text(apod.mediaType.toUpperCase()),
+        ],
+      ),
+    );
+  }
+}
+
+class _MediaPreview extends StatelessWidget {
+  final ApodUiModel apod;
+
+  const _MediaPreview({required this.apod});
+
+  @override
+  Widget build(BuildContext context) {
+    return ClipRRect(
+      borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          CachedNetworkImage(
+            imageUrl: apod.thumbnailUrl ?? apod.imageUrl,
+            fit: BoxFit.cover,
+            placeholder: (context, url) => const _LoadingPlaceholder(),
+            errorWidget: (context, url, error) => const _ErrorPlaceholder(),
+          ),
+          if (apod.isVideo) const _VideoOverlay(),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemInfo extends StatelessWidget {
+  final ApodUiModel apod;
+
+  const _ItemInfo({required this.apod});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Padding(
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            apod.title,
+            style: theme.textTheme.titleMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+            maxLines: null,
+          ),
+          const SizedBox(height: 8),
+          _ItemMetadata(apod: apod),
+        ],
+      ),
+    );
+  }
+}
+
+class _ItemMetadata extends StatelessWidget {
+  final ApodUiModel apod;
+
+  const _ItemMetadata({required this.apod});
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final textStyle = theme.textTheme.bodySmall?.copyWith(
+      color: theme.colorScheme.onSurfaceVariant,
+    );
+    final iconColor = theme.colorScheme.onSurfaceVariant;
+
+    return Row(
+      children: [
+        Icon(Icons.calendar_today_outlined, size: 14, color: iconColor),
+        const SizedBox(width: 4),
+        Text(apod.date, style: textStyle),
+        const SizedBox(width: 12),
+        Icon(
+          apod.isVideo ? Icons.play_circle_outline : Icons.photo_outlined,
+          size: 14,
+          color: iconColor,
+        ),
+        const SizedBox(width: 4),
+        Text(apod.mediaType.toUpperCase(), style: textStyle),
       ],
+    );
+  }
+}
+
+class _LoadingPlaceholder extends StatelessWidget {
+  const _LoadingPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      color: Colors.black12,
+      child: const Center(
+        child: CircularProgressIndicator(strokeWidth: 2),
+      ),
+    );
+  }
+}
+
+class _ErrorPlaceholder extends StatelessWidget {
+  const _ErrorPlaceholder();
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
+    return Container(
+      key: const Key('error-container'),
+      color: Colors.black12,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.error_outline,
+            color: theme.colorScheme.error,
+          ),
+          const SizedBox(height: 4),
+          Text(
+            'Error loading image',
+            style: theme.textTheme.bodySmall,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _VideoOverlay extends StatelessWidget {
+  const _VideoOverlay();
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned.fill(
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.bottomCenter,
+            end: Alignment.topCenter,
+            colors: [
+              Colors.black.withOpacity(0.7),
+              Colors.transparent,
+            ],
+          ),
+        ),
+        child: const Center(
+          child: Icon(
+            Icons.play_circle_outline,
+            color: Colors.white,
+            size: 48,
+          ),
+        ),
+      ),
     );
   }
 }
