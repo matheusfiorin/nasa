@@ -13,6 +13,9 @@ import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_detail.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
+import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/pagination_controller.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/search_controller.dart';
 
 import '../network/network_info.dart';
 
@@ -45,6 +48,18 @@ Future<void> init() async {
   // Core
   sl.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(sl()),
+  );
+  sl.registerLazySingleton<NavigationService>(
+    () => NavigationServiceImpl(),
+  );
+
+  // Controllers
+  sl.registerFactory(
+    () => PaginationController(getApodList: sl()),
+  );
+
+  sl.registerFactory(
+    () => ApodSearchController(searchApods: sl()),
   );
 
   // External
