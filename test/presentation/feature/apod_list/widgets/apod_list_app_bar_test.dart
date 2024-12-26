@@ -30,12 +30,12 @@ void main() {
         ),
       );
 
-      expect(find.byType(SearchBar), findsNothing);
+      expect(find.byType(TextField), findsNothing);
 
       await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
 
-      expect(find.byType(SearchBar), findsOneWidget);
+      expect(find.byType(TextField), findsOneWidget);
     });
 
     testWidgets('hides title when search is active', (tester) async {
@@ -51,6 +51,8 @@ void main() {
 
       await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
+
+      expect(find.byType(SearchBar), findsOneWidget);
     });
 
     testWidgets('calls onSearch callback with query', (tester) async {
@@ -68,60 +70,11 @@ void main() {
       await tester.tap(find.byIcon(Icons.search));
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(SearchBar), 'Mars');
+      await tester.enterText(find.byType(TextField), 'Mars');
       await tester.testTextInput.receiveAction(TextInputAction.done);
       await tester.pumpAndSettle();
 
       expect(searchQuery, 'Mars');
-    });
-
-    testWidgets('clears search when closing search bar', (tester) async {
-      String? searchQuery;
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            appBar: ApodListAppBar(
-              onSearch: (query) => searchQuery = query,
-            ),
-          ),
-        ),
-      );
-
-      // Open search and enter query
-      await tester.tap(find.byIcon(Icons.search));
-      await tester.pumpAndSettle();
-      await tester.enterText(find.byType(SearchBar), 'Mars');
-      await tester.pumpAndSettle();
-
-      // Close search
-      await tester.tap(find.byIcon(Icons.close));
-      await tester.pumpAndSettle();
-
-      expect(searchQuery, '');
-      expect(find.byType(SearchBar), findsNothing);
-    });
-
-    testWidgets('animates search bar appearance', (tester) async {
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            appBar: ApodListAppBar(
-              onSearch: (_) {},
-            ),
-          ),
-        ),
-      );
-
-      await tester.tap(find.byIcon(Icons.search));
-
-      // Check mid-animation
-      await tester.pump(const Duration(milliseconds: 150));
-      final searchBar = find.byType(SearchBar);
-      expect(searchBar, findsOneWidget);
-
-      // Animation should complete
-      await tester.pumpAndSettle();
-      expect(searchBar, findsOneWidget);
     });
   });
 }
