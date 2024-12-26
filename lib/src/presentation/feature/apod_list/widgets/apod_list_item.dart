@@ -1,4 +1,3 @@
-// lib/src/presentation/feature/apod_list/widgets/apod_list_item.dart
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
@@ -36,8 +35,7 @@ class ApodListItem extends StatelessWidget {
           AppRouter.detail,
           arguments: apod.toEntity(),
         ),
-        child: SizedBox(
-          width: double.infinity,
+        child: IntrinsicHeight(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -59,7 +57,9 @@ class ApodListItem extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    _buildMetadata(context),
+                    Flexible(
+                      child: _buildMetadata(context),
+                    ),
                   ],
                 ),
               ),

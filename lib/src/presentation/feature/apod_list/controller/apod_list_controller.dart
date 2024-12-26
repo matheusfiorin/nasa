@@ -26,8 +26,8 @@ class ApodListController extends ChangeNotifier {
   }
 
   final ScrollController scrollController;
-  ApodListState _state = const ApodListState();
 
+  ApodListState _state = const ApodListState();
   ApodListState get state => _state;
 
   List<ApodUiModel> get uiModels =>

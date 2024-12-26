@@ -14,45 +14,35 @@ class ResponsiveGrid extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final width = constraints.maxWidth;
-        final crossAxisCount = width >= 1200
-            ? 4
-            : width >= 900
-                ? 3
-                : width >= 600
-                    ? 2
-                    : 1;
+    final width = MediaQuery.of(context).size.width;
+    final itemsPerRow = width >= 1200
+        ? 4
+        : width >= 900
+            ? 3
+            : width >= 600
+                ? 2
+                : 1;
 
-        return ListView.builder(
-          controller: scrollController,
-          padding: padding,
-          itemCount: (children.length / crossAxisCount).ceil(),
-          itemBuilder: (context, rowIndex) {
-            final startIndex = rowIndex * crossAxisCount;
-            final endIndex =
-                (startIndex + crossAxisCount).clamp(0, children.length);
-            final rowChildren = children.sublist(startIndex, endIndex);
-
-            return Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 8),
-              child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  for (int i = 0; i < rowChildren.length; i++)
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.all(8),
-                        child: rowChildren[i],
-                      ),
-                    ),
-                  for (int i = rowChildren.length; i < crossAxisCount; i++)
-                    const Expanded(child: SizedBox()),
-                ],
-              ),
-            );
-          },
+    return ListView.builder(
+      controller: scrollController,
+      padding: padding,
+      itemCount: (children.length / itemsPerRow).ceil(),
+      itemBuilder: (context, index) {
+        final startIndex = index * itemsPerRow;
+        return Row(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            for (var i = 0; i < itemsPerRow; i++)
+              if (startIndex + i < children.length)
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.all(8.0),
+                    child: children[startIndex + i],
+                  ),
+                )
+              else
+                const Expanded(child: SizedBox())
+          ],
         );
       },
     );

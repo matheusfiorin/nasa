@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:nasa/src/presentation/common/widgets/error_view.dart';
+import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
 import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
@@ -34,31 +36,23 @@ class _ApodListScreenState extends State<ApodListScreen> {
         child: Consumer<ApodListController>(
           builder: (context, controller, child) {
             if (controller.state.isLoading && controller.state.apods.isEmpty) {
-              return const Center(child: CircularProgressIndicator());
+              return const LoadingIndicator();
             } else if (controller.state.error.isNotEmpty &&
                 controller.state.apods.isEmpty) {
-              return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(controller.state.error),
-                    ElevatedButton(
-                      onPressed: controller.loadApods,
-                      child: const Text('Retry'),
-                    ),
-                  ],
-                ),
-              );
-            } else {
-              return ApodListContent(
-                apods: controller.uiModels,
-                scrollController: _controller.scrollController,
-                onRefresh: controller.refresh,
-                navigationService: sl<NavigationService>(),
-                isLoadingMore: controller.state.isLoadingMore,
-                searchQuery: controller.state.searchQuery,
+              return ErrorView(
+                message: controller.state.error,
+                onRetry: controller.loadApods,
               );
             }
+
+            return ApodListContent(
+              apods: controller.uiModels,
+              scrollController: _controller.scrollController,
+              onRefresh: controller.refresh,
+              navigationService: sl<NavigationService>(),
+              isLoadingMore: controller.state.isLoadingMore,
+              searchQuery: controller.state.searchQuery,
+            );
           },
         ),
       ),

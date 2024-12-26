@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
 import 'package:nasa/src/presentation/core/layout/responsive_grid.dart';
 import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
@@ -34,14 +35,17 @@ class ApodListContent extends StatelessWidget {
             child: ResponsiveGrid(
               scrollController: scrollController,
               children: [
-                ...apods.map((apod) => ApodListItem(
-                      apod: apod,
-                      navigationService: navigationService,
-                    )),
+                ...apods.map(
+                  (apod) => ApodListItem(
+                    apod: apod,
+                    navigationService: navigationService,
+                  ),
+                ),
                 if (isLoadingMore)
                   const Padding(
+                    key: Key('loading_more'),
                     padding: EdgeInsets.all(16.0),
-                    child: Center(child: CircularProgressIndicator()),
+                    child: LoadingIndicator(),
                   ),
               ],
             ),
