@@ -1,12 +1,11 @@
-import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
-import 'package:nasa/src/core/error/failures.dart';
-import 'package:nasa/src/core/utils/formatter.dart';
-import 'package:nasa/src/domain/entity/apod.dart';
-import 'package:nasa/src/domain/use_case/clear_cache.dart';
+import 'package:flutter/material.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
+import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/presentation/feature/apod_list/state/apod_list_state.dart';
+import 'package:dartz/dartz.dart';
+import 'package:nasa/src/core/error/failures.dart';
+import 'package:nasa/src/domain/entity/apod.dart';
 
 class ApodListController extends ChangeNotifier {
   final GetApodList _getApodList;
@@ -20,8 +19,12 @@ class ApodListController extends ChangeNotifier {
     required ClearCache clearCache,
   })  : _getApodList = getApodList,
         _searchApods = searchApods,
-        _clearCache = clearCache;
+        _clearCache = clearCache,
+        scrollController = ScrollController() {
+    scrollController.addListener(_onScroll);
+  }
 
+  final ScrollController scrollController;
   ApodListState _state = const ApodListState();
 
   ApodListState get state => _state;
@@ -112,7 +115,7 @@ class ApodListController extends ChangeNotifier {
         ),
         (apods) => _updateState(
           (s) => s.copyWith(
-            apods: _sortApods(apods.toSet().toList()),
+            apods: apods,
             isLoading: false,
           ),
         ),
@@ -148,7 +151,7 @@ class ApodListController extends ChangeNotifier {
     } else {
       _updateState(
         (s) => s.copyWith(
-          apods: _sortApods([...s.apods, ...newApods]),
+          apods: [...s.apods, ...newApods],
           oldestLoadedDate: startDate,
           isLoading: false,
         ),
@@ -190,8 +193,8 @@ class ApodListController extends ChangeNotifier {
     if (newApods.isEmpty) {
       _updateState(
         (s) => s.copyWith(
-          hasReachedEnd: true,
           isLoadingMore: false,
+          hasReachedEnd: true,
         ),
       );
     } else {
@@ -199,7 +202,7 @@ class ApodListController extends ChangeNotifier {
       _updateState(
         (s) => s.copyWith(
           apods: uniqueApods,
-          oldestLoadedDate: Formatter.findOldestDate(uniqueApods),
+          oldestLoadedDate: DateTime.parse(uniqueApods.last.date),
           isLoadingMore: false,
         ),
       );
@@ -216,5 +219,19 @@ class ApodListController extends ChangeNotifier {
         apods.map((apod) => MapEntry(apod.date, apod)),
       ).values.toList(),
     );
+  }
+
+  void _onScroll() {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent * 0.9) {
+      loadMore();
+    }
+  }
+
+  @override
+  void dispose() {
+    scrollController.removeListener(_onScroll);
+    scrollController.dispose();
+    super.dispose();
   }
 }
