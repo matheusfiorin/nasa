@@ -6,6 +6,7 @@ import 'package:nasa/src/presentation/feature/apod_list/state/apod_list_state.da
 import 'package:dartz/dartz.dart';
 import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
+import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 
 class ApodListController extends ChangeNotifier {
   final GetApodList _getApodList;
@@ -28,6 +29,9 @@ class ApodListController extends ChangeNotifier {
   ApodListState _state = const ApodListState();
 
   ApodListState get state => _state;
+
+  List<ApodUiModel> get uiModels =>
+      _state.apods.map((apod) => ApodUiModel.fromEntity(apod)).toList();
 
   void _updateState(ApodListState Function(ApodListState) update) {
     _state = update(_state);

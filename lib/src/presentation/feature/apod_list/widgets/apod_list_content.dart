@@ -1,0 +1,53 @@
+import 'package:flutter/material.dart';
+import 'package:nasa/src/presentation/core/layout/responsive_grid.dart';
+import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
+import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/search_results_header.dart';
+
+class ApodListContent extends StatelessWidget {
+  final List<ApodUiModel> apods;
+  final ScrollController scrollController;
+  final VoidCallback onRefresh;
+  final NavigationService navigationService;
+  final bool isLoadingMore;
+  final String searchQuery;
+
+  const ApodListContent({
+    super.key,
+    required this.apods,
+    required this.scrollController,
+    required this.onRefresh,
+    required this.navigationService,
+    required this.isLoadingMore,
+    required this.searchQuery,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return RefreshIndicator(
+      onRefresh: () async => onRefresh(),
+      child: Column(
+        children: [
+          if (searchQuery.isNotEmpty) SearchResultsHeader(query: searchQuery),
+          Expanded(
+            child: ResponsiveGrid(
+              scrollController: scrollController,
+              children: [
+                ...apods.map((apod) => ApodListItem(
+                      apod: apod,
+                      navigationService: navigationService,
+                    )),
+                if (isLoadingMore)
+                  const Padding(
+                    padding: EdgeInsets.all(16.0),
+                    child: Center(child: CircularProgressIndicator()),
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

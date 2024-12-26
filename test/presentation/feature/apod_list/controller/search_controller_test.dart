@@ -2,6 +2,7 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
+import 'package:nasa/src/core/error/failures.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/search_controller.dart';
@@ -41,7 +42,7 @@ void main() {
 
     test('search should update state and return results', () async {
       const query = 'Mars';
-      when(mockSearchApods(query)).thenAnswer((_) async => Right(testApods));
+      when(mockSearchApods(query)).thenAnswer((_) async => const Right(testApods));
 
       final results = await controller.search(query);
 
@@ -65,7 +66,7 @@ void main() {
     test('search should handle failure', () async {
       const query = 'Mars';
       when(mockSearchApods(query))
-          .thenAnswer((_) async => const Left(Failure('Error')));
+          .thenAnswer((_) async => const Left(ServerFailure('Error')));
 
       final results = await controller.search(query);
 
@@ -76,7 +77,10 @@ void main() {
     });
 
     test('reset should clear state', () {
-      controller.search('Mars');
+      const query = 'Mars';
+      when(mockSearchApods(query))
+          .thenAnswer((_) async => const Left(ServerFailure('Error')));
+      controller.search(query);
       controller.reset();
 
       expect(controller.query, isEmpty);

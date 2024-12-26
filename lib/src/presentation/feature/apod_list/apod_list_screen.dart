@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_content.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_app_bar.dart';
 import 'package:nasa/src/core/di/injection_container.dart';
 
 class ApodListScreen extends StatefulWidget {
@@ -22,8 +25,11 @@ class _ApodListScreenState extends State<ApodListScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      child: ChangeNotifierProvider.value(
+    return Scaffold(
+      appBar: ApodListAppBar(
+        onSearch: _controller.searchApodsList,
+      ),
+      body: ChangeNotifierProvider.value(
         value: _controller,
         child: Consumer<ApodListController>(
           builder: (context, controller, child) {
@@ -44,19 +50,13 @@ class _ApodListScreenState extends State<ApodListScreen> {
                 ),
               );
             } else {
-              return RefreshIndicator(
+              return ApodListContent(
+                apods: controller.uiModels,
+                scrollController: _controller.scrollController,
                 onRefresh: controller.refresh,
-                child: ListView.builder(
-                  controller: _controller.scrollController,
-                  itemCount: controller.state.apods.length,
-                  itemBuilder: (context, index) {
-                    final apod = controller.state.apods[index];
-                    return ListTile(
-                      title: Text(apod.title),
-                      subtitle: Text(apod.date.toString()),
-                    );
-                  },
-                ),
+                navigationService: sl<NavigationService>(),
+                isLoadingMore: controller.state.isLoadingMore,
+                searchQuery: controller.state.searchQuery,
               );
             }
           },
