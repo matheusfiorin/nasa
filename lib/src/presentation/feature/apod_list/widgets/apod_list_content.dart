@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
-import 'package:nasa/src/presentation/core/layout/responsive_grid.dart';
+import 'package:nasa/src/presentation/common/widgets/responsive_grid.dart';
 import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';

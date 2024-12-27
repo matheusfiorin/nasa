@@ -1,4 +1,3 @@
-// lib/src/presentation/core/scroll/scroll_manager.dart
 import 'dart:async';
 import 'package:flutter/widgets.dart';
 

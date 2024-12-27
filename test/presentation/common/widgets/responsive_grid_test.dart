@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:nasa/src/presentation/core/layout/responsive_grid.dart';
+import 'package:nasa/src/presentation/common/widgets/responsive_grid.dart';
 
 void main() {
   group('ResponsiveGrid', () {
