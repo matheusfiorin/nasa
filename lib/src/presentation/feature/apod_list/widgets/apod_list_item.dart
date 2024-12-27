@@ -1,18 +1,15 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 
 import '../../../routes/app_router.dart';
 
 class ApodListItem extends StatelessWidget {
   final ApodUiModel apod;
-  final NavigationService navigationService;
 
   const ApodListItem({
     super.key,
     required this.apod,
-    required this.navigationService,
   });
 
   @override
@@ -30,7 +27,7 @@ class ApodListItem extends StatelessWidget {
         ),
       ),
       child: InkWell(
-        onTap: () => navigationService.navigateTo(
+        onTap: () => Navigator.pushNamed(
           context,
           AppRouter.detail,
           arguments: apod.toEntity(),

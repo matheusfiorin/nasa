@@ -1,19 +1,12 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
 import 'package:mockito/mockito.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';
 import 'package:nasa/src/presentation/routes/app_router.dart';
 
-import 'apod_list_item_test.mocks.dart';
-
-@GenerateNiceMocks([MockSpec<NavigationService>()])
 void main() {
-  late NavigationService navigationService;
-
   const imageApod = ApodUiModel(
     date: '2024-01-01',
     title: 'Test Image',
@@ -31,16 +24,11 @@ void main() {
     thumbnailUrl: 'https://img.youtube.com/vi/123/0.jpg',
   );
 
-  setUp(() {
-    navigationService = MockNavigationService();
-  });
-
   Widget createWidget(ApodUiModel apod) {
     return MaterialApp(
       home: Scaffold(
         body: ApodListItem(
           apod: apod,
-          navigationService: navigationService,
         ),
       ),
     );
@@ -71,9 +59,8 @@ void main() {
       final widget = MaterialApp(
         home: Builder(
           builder: (context) {
-            return ApodListItem(
+            return const ApodListItem(
               apod: imageApod,
-              navigationService: navigationService,
             );
           },
         ),
@@ -85,7 +72,7 @@ void main() {
       await tester.tap(find.byType(InkWell));
       await tester.pump();
 
-      verify(navigationService.navigateTo<void>(
+      verify(Navigator.pushNamed(
         context,
         AppRouter.detail,
         arguments: imageApod.toEntity(),
@@ -133,10 +120,9 @@ void main() {
 
       await tester.pumpWidget(MaterialApp(
         theme: theme,
-        home: Scaffold(
+        home: const Scaffold(
           body: ApodListItem(
             apod: imageApod,
-            navigationService: navigationService,
           ),
         ),
       ));

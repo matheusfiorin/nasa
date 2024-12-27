@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import 'package:get_it/get_it.dart';
 import 'package:hive_flutter/hive_flutter.dart';
 import 'package:internet_connection_checker/internet_connection_checker.dart';
+import 'package:nasa/src/core/network/network_info.dart';
 import 'package:nasa/src/data/model/apod_hive_model.dart';
 import 'package:nasa/src/data/provider/local/apod_local_provider.dart';
 import 'package:nasa/src/data/provider/remote/apod_remote_provider.dart';
@@ -13,12 +14,7 @@ import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_detail.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/pagination_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/search_controller.dart';
-
-import '../network/network_info.dart';
 
 final sl = GetIt.instance;
 
@@ -50,19 +46,8 @@ Future<void> init() async {
   sl.registerLazySingleton<NetworkInfo>(
     () => NetworkInfoImpl(sl()),
   );
-  sl.registerLazySingleton<NavigationService>(
-    () => NavigationServiceImpl(),
-  );
 
   // Controllers
-  sl.registerFactory(
-    () => PaginationController(getApodList: sl()),
-  );
-
-  sl.registerFactory(
-    () => ApodSearchController(searchApods: sl()),
-  );
-
   sl.registerFactory(
     () => ApodListController(
       getApodList: sl(),

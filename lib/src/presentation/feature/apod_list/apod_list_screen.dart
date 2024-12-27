@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/presentation/common/widgets/error_view.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:provider/provider.dart';
 import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_content.dart';
@@ -49,7 +48,6 @@ class _ApodListScreenState extends State<ApodListScreen> {
               apods: controller.uiModels,
               scrollController: _controller.scrollController,
               onRefresh: controller.refresh,
-              navigationService: sl<NavigationService>(),
               isLoadingMore: controller.state.isLoadingMore,
               searchQuery: controller.state.searchQuery,
             );

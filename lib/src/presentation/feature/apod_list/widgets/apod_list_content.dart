@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
 import 'package:nasa/src/presentation/common/widgets/responsive_grid.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/search_results_header.dart';
@@ -10,7 +9,6 @@ class ApodListContent extends StatelessWidget {
   final List<ApodUiModel> apods;
   final ScrollController scrollController;
   final VoidCallback onRefresh;
-  final NavigationService navigationService;
   final bool isLoadingMore;
   final String searchQuery;
 
@@ -19,7 +17,6 @@ class ApodListContent extends StatelessWidget {
     required this.apods,
     required this.scrollController,
     required this.onRefresh,
-    required this.navigationService,
     required this.isLoadingMore,
     required this.searchQuery,
   });
@@ -38,7 +35,6 @@ class ApodListContent extends StatelessWidget {
                 ...apods.map(
                   (apod) => ApodListItem(
                     apod: apod,
-                    navigationService: navigationService,
                   ),
                 ),
                 if (isLoadingMore)

@@ -1,19 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/annotations.dart';
-import 'package:mockito/mockito.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_content.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/search_results_header.dart';
 
-import 'apod_list_content_test.mocks.dart';
-
-@GenerateNiceMocks([MockSpec<NavigationService>()])
 void main() {
-  late NavigationService navigationService;
-
   const apodList = [
     ApodUiModel(
       date: '2024-01-01',
@@ -31,10 +23,6 @@ void main() {
     ),
   ];
 
-  setUp(() {
-    navigationService = MockNavigationService();
-  });
-
   Widget createWidget({
     required List<ApodUiModel> apods,
     required bool isLoadingMore,
@@ -46,7 +34,6 @@ void main() {
           apods: apods,
           scrollController: ScrollController(),
           onRefresh: () {},
-          navigationService: navigationService,
           isLoadingMore: isLoadingMore,
           searchQuery: searchQuery,
         ),
@@ -88,13 +75,17 @@ void main() {
               onRefresh: () {
                 refreshCalled = true;
               },
-              navigationService: navigationService,
               isLoadingMore: false,
               searchQuery: '',
             ),
           ),
         ),
       );
+
+      await tester.drag(find.byType(RefreshIndicator), const Offset(0, 100));
+      await tester.pumpAndSettle();
+
+      expect(refreshCalled, isTrue);
     });
 
     testWidgets('renders search results header when search query is present',

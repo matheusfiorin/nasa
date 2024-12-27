@@ -10,19 +10,13 @@ import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
 import 'package:nasa/src/presentation/common/widgets/error_view.dart';
-import 'package:nasa/src/presentation/core/navigation/navigation_service.dart';
 import 'package:nasa/src/presentation/feature/apod_list/apod_list_screen.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/pagination_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/search_controller.dart';
 
 @GenerateMocks([
   GetApodList,
   SearchApods,
   ClearCache,
   NavigatorObserver,
-  NavigationService,
-  PaginationController,
-  ApodSearchController
 ])
 import 'apod_list_screen_test.mocks.dart';
 
@@ -31,34 +25,22 @@ void main() {
   late MockSearchApods mockSearchApods;
   late MockClearCache mockClearCache;
   late MockNavigatorObserver mockNavigatorObserver;
-  late MockNavigationService mockNavigationService;
-  late MockPaginationController mockPaginationController;
-  late MockApodSearchController mockApodSearchController;
 
   setUp(() {
     mockGetApodList = MockGetApodList();
     mockSearchApods = MockSearchApods();
     mockClearCache = MockClearCache();
     mockNavigatorObserver = MockNavigatorObserver();
-    mockNavigationService = MockNavigationService();
-    mockPaginationController = MockPaginationController();
-    mockApodSearchController = MockApodSearchController();
 
     // Reset and setup GetIt
     final getIt = GetIt.instance;
     if (getIt.isRegistered<GetApodList>()) getIt.unregister<GetApodList>();
     if (getIt.isRegistered<SearchApods>()) getIt.unregister<SearchApods>();
     if (getIt.isRegistered<ClearCache>()) getIt.unregister<ClearCache>();
-    if (getIt.isRegistered<NavigationService>()) getIt.unregister<NavigationService>();
-    if (getIt.isRegistered<PaginationController>()) getIt.unregister<PaginationController>();
-    if (getIt.isRegistered<ApodSearchController>()) getIt.unregister<ApodSearchController>();
 
     getIt.registerFactory<GetApodList>(() => mockGetApodList);
     getIt.registerFactory<SearchApods>(() => mockSearchApods);
     getIt.registerFactory<ClearCache>(() => mockClearCache);
-    getIt.registerFactory<NavigationService>(() => mockNavigationService);
-    getIt.registerFactory<PaginationController>(() => mockPaginationController);
-    getIt.registerFactory<ApodSearchController>(() => mockApodSearchController);
 
     when(mockNavigatorObserver.navigator).thenReturn(null);
     when(mockClearCache()).thenAnswer((_) => Future.value());
@@ -123,7 +105,8 @@ void main() {
       expect(find.text('Test error'), findsOneWidget);
 
       // Verify retry functionality
-      await tester.tap(find.byType(TextButton)); // Assuming ErrorView has a retry button
+      await tester.tap(
+          find.byType(TextButton)); // Assuming ErrorView has a retry button
       await tester.pumpAndSettle();
 
       // Verify getApodList was called again
@@ -137,7 +120,7 @@ void main() {
         return Right(testApods);
       });
 
-      when(mockClearCache()).thenAnswer((_) async => Right(null));
+      when(mockClearCache()).thenAnswer((_) async => const Right(null));
 
       await tester.pumpWidget(createWidgetUnderTest());
       await tester.pump();
