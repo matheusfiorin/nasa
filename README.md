@@ -80,6 +80,8 @@ The project is divided into the following folders:
     │   ├── network
     │   └── utils
     ├── data
+    │   ├── filter
+    │   ├── mapper
     │   ├── model
     │   ├── provider
     │   │   ├── local
@@ -100,6 +102,8 @@ The project is divided into the following folders:
         │   │   └── widgets
         │   └── apod_list
         │       ├── controller
+        │       │   └── manager
+        │       ├── model
         │       ├── state
         │       └── widgets
         └── routes
