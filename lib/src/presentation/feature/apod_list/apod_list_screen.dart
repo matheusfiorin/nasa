@@ -30,6 +30,10 @@ class _ApodListScreenState extends State<ApodListScreen> {
       appBar: ApodListAppBar(
         onSearch: _controller.searchApodsList,
       ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () => Navigator.pushNamed(context, '/neo'),
+        child: const Icon(Icons.rocket),
+      ),
       body: ChangeNotifierProvider.value(
         value: _controller,
         child: Consumer<ApodListController>(
