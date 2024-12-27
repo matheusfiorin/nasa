@@ -1,14 +1,11 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
-import 'package:nasa/src/core/di/injection_container.dart';
 import 'package:nasa/src/presentation/common/widgets/error_view.dart';
 import 'package:nasa/src/presentation/common/widgets/loading_indicator.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
-import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_app_bar.dart';
 import 'package:provider/provider.dart';
-
-import 'widgets/apod_list_item.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_content.dart';
+import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_app_bar.dart';
+import 'package:nasa/src/core/di/injection_container.dart';
 
 class ApodListScreen extends StatefulWidget {
   const ApodListScreen({super.key});
@@ -19,114 +16,40 @@ class ApodListScreen extends StatefulWidget {
 
 class _ApodListScreenState extends State<ApodListScreen> {
   late final ApodListController _controller;
-  final _scrollController = ScrollController();
-  Timer? _scrollDebounce;
 
   @override
   void initState() {
     super.initState();
-    _controller = ApodListController(
-      getApodList: sl(),
-      searchApods: sl(),
-      clearCache: sl(),
-    );
+    _controller = sl<ApodListController>();
     _controller.loadApods();
-    _scrollController.addListener(_onScroll);
-  }
-
-  @override
-  void dispose() {
-    _scrollDebounce?.cancel();
-    _scrollController.dispose();
-    super.dispose();
-  }
-
-  void _onScroll() {
-    if (_scrollDebounce?.isActive ?? false) return;
-
-    _scrollDebounce = Timer(const Duration(milliseconds: 150), () {
-      if (_scrollController.position.pixels >=
-          _scrollController.position.maxScrollExtent - 1000) {
-        _controller.loadMore();
-      }
-    });
   }
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final screenWidth = MediaQuery.of(context).size.width;
-
-    return ChangeNotifierProvider.value(
-      value: _controller,
-      child: Scaffold(
-        appBar: ApodListAppBar(controller: _controller),
-        body: Consumer<ApodListController>(
+    return Scaffold(
+      appBar: ApodListAppBar(
+        onSearch: _controller.searchApodsList,
+      ),
+      body: ChangeNotifierProvider.value(
+        value: _controller,
+        child: Consumer<ApodListController>(
           builder: (context, controller, child) {
-            final state = controller.state;
-
-            if (state.isLoading && state.apods.isEmpty) {
+            if (controller.state.isLoading && controller.state.apods.isEmpty) {
               return const LoadingIndicator();
-            }
-
-            if (state.error.isNotEmpty && state.apods.isEmpty) {
+            } else if (controller.state.error.isNotEmpty &&
+                controller.state.apods.isEmpty) {
               return ErrorView(
-                message: state.error,
+                message: controller.state.error,
                 onRetry: controller.loadApods,
               );
             }
 
-            return RefreshIndicator(
+            return ApodListContent(
+              apods: controller.uiModels,
+              scrollController: _controller.scrollController,
               onRefresh: controller.refresh,
-              child: Column(
-                children: [
-                  if (state.searchQuery.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.all(16),
-                      child: Row(
-                        children: [
-                          Text(
-                            'Search results for: ',
-                            style: theme.textTheme.bodyLarge,
-                          ),
-                          Text(
-                            state.searchQuery,
-                            style: theme.textTheme.bodyLarge?.copyWith(
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  Expanded(
-                    child: GridView.builder(
-                      controller: _scrollController,
-                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: screenWidth >= 1200
-                            ? 4
-                            : screenWidth >= 900
-                                ? 3
-                                : screenWidth >= 600
-                                    ? 2
-                                    : 1,
-                      ),
-                      itemCount:
-                          state.apods.length + (state.isLoadingMore ? 1 : 0),
-                      itemBuilder: (context, index) {
-                        if (index == state.apods.length) {
-                          return const Padding(
-                            padding: EdgeInsets.all(16.0),
-                            child: Center(child: CircularProgressIndicator()),
-                          );
-                        }
-
-                        final apod = state.apods[index];
-                        return ApodListItem(apod: apod);
-                      },
-                    ),
-                  ),
-                ],
-              ),
+              isLoadingMore: controller.state.isLoadingMore,
+              searchQuery: controller.state.searchQuery,
             );
           },
         ),

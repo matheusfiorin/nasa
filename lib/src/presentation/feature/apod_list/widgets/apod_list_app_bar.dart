@@ -1,13 +1,12 @@
 import 'package:flutter/material.dart';
-import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_search_bar.dart';
 
 class ApodListAppBar extends StatefulWidget implements PreferredSizeWidget {
-  final ApodListController controller;
+  final Function(String) onSearch;
 
   const ApodListAppBar({
     super.key,
-    required this.controller,
+    required this.onSearch,
   });
 
   @override
@@ -60,7 +59,7 @@ class _ApodListAppBarState extends State<ApodListAppBar>
         _animationController.forward();
       } else {
         _animationController.reverse();
-        widget.controller.searchApodsList('');
+        widget.onSearch('');
       }
     });
   }
@@ -127,7 +126,7 @@ class _ApodListAppBarState extends State<ApodListAppBar>
                     child: Padding(
                       padding: const EdgeInsets.symmetric(horizontal: 8),
                       child: ApodSearchBar(
-                        onSearch: widget.controller.searchApodsList,
+                        onSearch: widget.onSearch,
                       ),
                     ),
                   ),

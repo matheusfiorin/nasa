@@ -3,17 +3,24 @@
 // Do not manually edit this file.
 
 // ignore_for_file: no_leading_underscores_for_library_prefixes
-import 'dart:async' as _i5;
+import 'dart:async' as _i7;
+import 'dart:ui' as _i14;
 
 import 'package:dartz/dartz.dart' as _i3;
-import 'package:flutter/src/widgets/navigator.dart' as _i10;
+import 'package:flutter/material.dart' as _i5;
 import 'package:mockito/mockito.dart' as _i1;
-import 'package:nasa/src/core/error/failures.dart' as _i6;
-import 'package:nasa/src/domain/entity/apod.dart' as _i7;
+import 'package:nasa/src/core/error/failures.dart' as _i8;
+import 'package:nasa/src/domain/entity/apod.dart' as _i9;
 import 'package:nasa/src/domain/repository/apod_repository.dart' as _i2;
-import 'package:nasa/src/domain/use_case/clear_cache.dart' as _i9;
-import 'package:nasa/src/domain/use_case/get_apod_list.dart' as _i4;
-import 'package:nasa/src/domain/use_case/search_apod.dart' as _i8;
+import 'package:nasa/src/domain/use_case/clear_cache.dart' as _i11;
+import 'package:nasa/src/domain/use_case/get_apod_list.dart' as _i6;
+import 'package:nasa/src/domain/use_case/search_apod.dart' as _i10;
+import 'package:nasa/src/presentation/feature/apod_list/controller/apod_list_controller.dart'
+    as _i12;
+import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart'
+    as _i13;
+import 'package:nasa/src/presentation/feature/apod_list/state/apod_list_state.dart'
+    as _i4;
 
 // ignore_for_file: type=lint
 // ignore_for_file: avoid_redundant_argument_values
@@ -49,10 +56,31 @@ class _FakeEither_1<L, R> extends _i1.SmartFake implements _i3.Either<L, R> {
         );
 }
 
+class _FakeApodListState_2 extends _i1.SmartFake implements _i4.ApodListState {
+  _FakeApodListState_2(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
+class _FakeScrollController_3 extends _i1.SmartFake
+    implements _i5.ScrollController {
+  _FakeScrollController_3(
+    Object parent,
+    Invocation parentInvocation,
+  ) : super(
+          parent,
+          parentInvocation,
+        );
+}
+
 /// A class which mocks [GetApodList].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockGetApodList extends _i1.Mock implements _i4.GetApodList {
+class MockGetApodList extends _i1.Mock implements _i6.GetApodList {
   MockGetApodList() {
     _i1.throwOnMissingStub(this);
   }
@@ -67,7 +95,7 @@ class MockGetApodList extends _i1.Mock implements _i4.GetApodList {
       ) as _i2.ApodRepository);
 
   @override
-  _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>> call(
+  _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>> call(
     DateTime? startDate,
     DateTime? endDate,
   ) =>
@@ -79,8 +107,8 @@ class MockGetApodList extends _i1.Mock implements _i4.GetApodList {
             endDate,
           ],
         ),
-        returnValue: _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>>.value(
-            _FakeEither_1<_i6.Failure, List<_i7.Apod>>(
+        returnValue: _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>>.value(
+            _FakeEither_1<_i8.Failure, List<_i9.Apod>>(
           this,
           Invocation.method(
             #call,
@@ -90,13 +118,13 @@ class MockGetApodList extends _i1.Mock implements _i4.GetApodList {
             ],
           ),
         )),
-      ) as _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>>);
+      ) as _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>>);
 }
 
 /// A class which mocks [SearchApods].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockSearchApods extends _i1.Mock implements _i8.SearchApods {
+class MockSearchApods extends _i1.Mock implements _i10.SearchApods {
   MockSearchApods() {
     _i1.throwOnMissingStub(this);
   }
@@ -111,27 +139,27 @@ class MockSearchApods extends _i1.Mock implements _i8.SearchApods {
       ) as _i2.ApodRepository);
 
   @override
-  _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>> call(String? query) =>
+  _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>> call(String? query) =>
       (super.noSuchMethod(
         Invocation.method(
           #call,
           [query],
         ),
-        returnValue: _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>>.value(
-            _FakeEither_1<_i6.Failure, List<_i7.Apod>>(
+        returnValue: _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>>.value(
+            _FakeEither_1<_i8.Failure, List<_i9.Apod>>(
           this,
           Invocation.method(
             #call,
             [query],
           ),
         )),
-      ) as _i5.Future<_i3.Either<_i6.Failure, List<_i7.Apod>>>);
+      ) as _i7.Future<_i3.Either<_i8.Failure, List<_i9.Apod>>>);
 }
 
 /// A class which mocks [ClearCache].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockClearCache extends _i1.Mock implements _i9.ClearCache {
+class MockClearCache extends _i1.Mock implements _i11.ClearCache {
   MockClearCache() {
     _i1.throwOnMissingStub(this);
   }
@@ -146,28 +174,28 @@ class MockClearCache extends _i1.Mock implements _i9.ClearCache {
       ) as _i2.ApodRepository);
 
   @override
-  _i5.Future<void> call() => (super.noSuchMethod(
+  _i7.Future<void> call() => (super.noSuchMethod(
         Invocation.method(
           #call,
           [],
         ),
-        returnValue: _i5.Future<void>.value(),
-        returnValueForMissingStub: _i5.Future<void>.value(),
-      ) as _i5.Future<void>);
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
 }
 
 /// A class which mocks [NavigatorObserver].
 ///
 /// See the documentation for Mockito's code generation for more information.
-class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
+class MockNavigatorObserver extends _i1.Mock implements _i5.NavigatorObserver {
   MockNavigatorObserver() {
     _i1.throwOnMissingStub(this);
   }
 
   @override
   void didPush(
-    _i10.Route<dynamic>? route,
-    _i10.Route<dynamic>? previousRoute,
+    _i5.Route<dynamic>? route,
+    _i5.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -182,8 +210,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
 
   @override
   void didPop(
-    _i10.Route<dynamic>? route,
-    _i10.Route<dynamic>? previousRoute,
+    _i5.Route<dynamic>? route,
+    _i5.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -198,8 +226,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
 
   @override
   void didRemove(
-    _i10.Route<dynamic>? route,
-    _i10.Route<dynamic>? previousRoute,
+    _i5.Route<dynamic>? route,
+    _i5.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -214,8 +242,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
 
   @override
   void didReplace({
-    _i10.Route<dynamic>? newRoute,
-    _i10.Route<dynamic>? oldRoute,
+    _i5.Route<dynamic>? newRoute,
+    _i5.Route<dynamic>? oldRoute,
   }) =>
       super.noSuchMethod(
         Invocation.method(
@@ -231,8 +259,8 @@ class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
 
   @override
   void didStartUserGesture(
-    _i10.Route<dynamic>? route,
-    _i10.Route<dynamic>? previousRoute,
+    _i5.Route<dynamic>? route,
+    _i5.Route<dynamic>? previousRoute,
   ) =>
       super.noSuchMethod(
         Invocation.method(
@@ -249,6 +277,123 @@ class MockNavigatorObserver extends _i1.Mock implements _i10.NavigatorObserver {
   void didStopUserGesture() => super.noSuchMethod(
         Invocation.method(
           #didStopUserGesture,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+}
+
+/// A class which mocks [ApodListController].
+///
+/// See the documentation for Mockito's code generation for more information.
+class MockApodListController extends _i1.Mock
+    implements _i12.ApodListController {
+  MockApodListController() {
+    _i1.throwOnMissingStub(this);
+  }
+
+  @override
+  _i4.ApodListState get state => (super.noSuchMethod(
+        Invocation.getter(#state),
+        returnValue: _FakeApodListState_2(
+          this,
+          Invocation.getter(#state),
+        ),
+      ) as _i4.ApodListState);
+
+  @override
+  _i5.ScrollController get scrollController => (super.noSuchMethod(
+        Invocation.getter(#scrollController),
+        returnValue: _FakeScrollController_3(
+          this,
+          Invocation.getter(#scrollController),
+        ),
+      ) as _i5.ScrollController);
+
+  @override
+  List<_i13.ApodUiModel> get uiModels => (super.noSuchMethod(
+        Invocation.getter(#uiModels),
+        returnValue: <_i13.ApodUiModel>[],
+      ) as List<_i13.ApodUiModel>);
+
+  @override
+  bool get hasListeners => (super.noSuchMethod(
+        Invocation.getter(#hasListeners),
+        returnValue: false,
+      ) as bool);
+
+  @override
+  _i7.Future<void> loadApods({bool? refresh = false}) => (super.noSuchMethod(
+        Invocation.method(
+          #loadApods,
+          [],
+          {#refresh: refresh},
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> loadMore() => (super.noSuchMethod(
+        Invocation.method(
+          #loadMore,
+          [],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> searchApodsList(String? query) => (super.noSuchMethod(
+        Invocation.method(
+          #searchApodsList,
+          [query],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  _i7.Future<void> refresh() => (super.noSuchMethod(
+        Invocation.method(
+          #refresh,
+          [],
+        ),
+        returnValue: _i7.Future<void>.value(),
+        returnValueForMissingStub: _i7.Future<void>.value(),
+      ) as _i7.Future<void>);
+
+  @override
+  void dispose() => super.noSuchMethod(
+        Invocation.method(
+          #dispose,
+          [],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void addListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #addListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void removeListener(_i14.VoidCallback? listener) => super.noSuchMethod(
+        Invocation.method(
+          #removeListener,
+          [listener],
+        ),
+        returnValueForMissingStub: null,
+      );
+
+  @override
+  void notifyListeners() => super.noSuchMethod(
+        Invocation.method(
+          #notifyListeners,
           [],
         ),
         returnValueForMissingStub: null,

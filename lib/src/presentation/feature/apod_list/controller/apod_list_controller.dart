@@ -1,18 +1,24 @@
 import 'package:dartz/dartz.dart';
-import 'package:flutter/foundation.dart';
+import 'package:flutter/material.dart';
 import 'package:nasa/src/core/error/failures.dart';
-import 'package:nasa/src/core/utils/formatter.dart';
 import 'package:nasa/src/domain/entity/apod.dart';
 import 'package:nasa/src/domain/use_case/clear_cache.dart';
 import 'package:nasa/src/domain/use_case/get_apod_list.dart';
 import 'package:nasa/src/domain/use_case/search_apod.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/manager/apod_data_manager.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/manager/apod_pagination_manager.dart';
+import 'package:nasa/src/presentation/feature/apod_list/controller/manager/apod_scroll_manager.dart';
+import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/state/apod_list_state.dart';
 
 class ApodListController extends ChangeNotifier {
   final GetApodList _getApodList;
   final SearchApods _searchApods;
   final ClearCache _clearCache;
-  static const int _daysToLoad = 15;
+
+  late final ApodPaginationManager _paginationManager;
+  late final ApodDataManager _dataManager;
+  late final ApodScrollManager _scrollManager;
 
   ApodListController({
     required GetApodList getApodList,
@@ -20,16 +26,25 @@ class ApodListController extends ChangeNotifier {
     required ClearCache clearCache,
   })  : _getApodList = getApodList,
         _searchApods = searchApods,
-        _clearCache = clearCache;
+        _clearCache = clearCache {
+    _initializeManagers();
+  }
+
+  void _initializeManagers() {
+    _paginationManager = ApodPaginationManager(_getApodList);
+    _dataManager = ApodDataManager();
+    _scrollManager = ApodScrollManager(onLoadMore: loadMore);
+    _scrollManager.init();
+  }
 
   ApodListState _state = const ApodListState();
-
   ApodListState get state => _state;
+  ScrollController get scrollController => _scrollManager.scrollController;
 
-  void _updateState(ApodListState Function(ApodListState) update) {
-    _state = update(_state);
-    notifyListeners();
-  }
+  List<ApodUiModel> get uiModels =>
+      _dataManager.convertToUiModels(_state.apods);
+
+  // MARK: - Public Methods
 
   Future<void> loadApods({bool refresh = false}) async {
     if (_state.isLoading) return;
@@ -38,183 +53,162 @@ class ApodListController extends ChangeNotifier {
       await _resetState();
     }
 
-    _updateState(
-      (s) => s.copyWith(
-        isLoading: true,
-        error: '',
-      ),
-    );
-
-    try {
-      final endDate = _state.oldestLoadedDate ?? DateTime.now();
-      final startDate = endDate.subtract(const Duration(days: _daysToLoad));
-
-      final result = await _getApodList(startDate, endDate);
-
-      result.fold(
-        (failure) => _updateState(
-          (s) => s.copyWith(
-            error: failure.message,
-            isLoading: false,
-          ),
-        ),
-        (newApods) => _handleNewApods(newApods, startDate),
-      );
-    } catch (e) {
-      _handleError(e.toString());
-    }
+    await _loadInitialData();
   }
 
   Future<void> loadMore() async {
-    if (_shouldSkipLoadMore) return;
+    if (!_paginationManager.shouldLoadMore(_state)) return;
 
-    _updateState((s) => s.copyWith(isLoadingMore: true));
-
-    try {
-      final result = await _fetchMoreApods();
-      result.fold(
-        (failure) => _updateState(
-          (s) => s.copyWith(
-            error: failure.message,
-            isLoadingMore: false,
-          ),
-        ),
-        (newApods) => _processMoreApods(newApods),
-      );
-    } catch (e) {
-      _handleLoadMoreError(e.toString());
-    }
+    await _handlePagination();
   }
 
   Future<void> searchApodsList(String query) async {
     _updateState((s) => s.copyWith(searchQuery: query));
 
     if (query.isEmpty) {
-      await _resetState();
-      return await loadApods();
+      return _handleEmptySearch();
     }
 
-    _updateState(
-      (s) => s.copyWith(
-        isLoading: true,
-        error: '',
-      ),
-    );
+    await _performSearch(query);
+  }
+
+  Future<void> refresh() => loadApods(refresh: true);
+
+  // MARK: - Private Methods - Data Loading
+
+  Future<void> _loadInitialData() async {
+    _updateLoadingState(true);
 
     try {
-      final result = await _searchApods(query);
-      result.fold(
-        (failure) => _updateState(
-          (s) => s.copyWith(
-            error: failure.message,
-            isLoading: false,
-          ),
-        ),
-        (apods) => _updateState(
-          (s) => s.copyWith(
-            apods: _sortApods(apods.toSet().toList()),
-            isLoading: false,
-          ),
-        ),
-      );
+      final result =
+          await _paginationManager.fetchInitialData(_state.oldestLoadedDate);
+      _handleDataResult(result);
     } catch (e) {
       _handleError(e.toString());
     }
   }
 
-  Future<void> refresh() => loadApods(refresh: true);
+  Future<void> _handlePagination() async {
+    _updateState((s) => s.copyWith(isLoadingMore: true));
 
-  // Private helper methods
-  bool get _shouldSkipLoadMore =>
-      _state.isLoading ||
-      _state.isLoadingMore ||
-      _state.hasReachedEnd ||
-      _state.searchQuery.isNotEmpty ||
-      _state.oldestLoadedDate == null;
+    try {
+      final result =
+          await _paginationManager.fetchMoreApods(_state.oldestLoadedDate);
+      _handlePaginationResult(result);
+    } catch (e) {
+      _handleError(e.toString(), isPagination: true);
+    }
+  }
+
+  Future<void> _performSearch(String query) async {
+    _updateLoadingState(true);
+
+    try {
+      final result = await _searchApods(query);
+      _handleSearchResult(result);
+    } catch (e) {
+      _handleError(e.toString());
+    }
+  }
+
+  // MARK: - Private Methods - State Updates
+
+  void _updateState(ApodListState Function(ApodListState) update) {
+    _state = update(_state);
+    notifyListeners();
+  }
+
+  void _updateLoadingState(bool isLoading) {
+    _updateState((s) => s.copyWith(
+          isLoading: isLoading,
+          error: '',
+        ));
+  }
 
   Future<void> _resetState() async {
     await _clearCache();
     _updateState((s) => const ApodListState());
   }
 
-  void _handleNewApods(List<Apod> newApods, DateTime startDate) {
+  Future<void> _handleEmptySearch() async {
+    await _resetState();
+    return loadApods();
+  }
+
+  // MARK: - Private Methods - Result Handling
+
+  void _handleDataResult(Either<Failure, List<Apod>> result) {
+    result.fold(
+      (failure) => _handleError(failure.message),
+      (newApods) => _processNewApods(newApods),
+    );
+  }
+
+  void _handlePaginationResult(Either<Failure, List<Apod>> result) {
+    result.fold(
+      (failure) => _handleError(failure.message, isPagination: true),
+      (newApods) => _processMoreApods(newApods),
+    );
+  }
+
+  void _handleSearchResult(Either<Failure, List<Apod>> result) {
+    result.fold(
+      (failure) => _handleError(failure.message),
+      (apods) => _updateState((s) => s.copyWith(
+            apods: apods,
+            isLoading: false,
+          )),
+    );
+  }
+
+  void _processNewApods(List<Apod> newApods) {
     if (newApods.isEmpty) {
-      _updateState(
-        (s) => s.copyWith(
-          hasReachedEnd: true,
-          isLoading: false,
-        ),
-      );
+      _updateState((s) => s.copyWith(
+            hasReachedEnd: true,
+            isLoading: false,
+          ));
     } else {
-      _updateState(
-        (s) => s.copyWith(
-          apods: _sortApods([...s.apods, ...newApods]),
-          oldestLoadedDate: startDate,
-          isLoading: false,
-        ),
+      final uniqueApods = _dataManager.getUniqueApods(
+        [..._state.apods, ...newApods],
       );
+      _updateState((s) => s.copyWith(
+            apods: uniqueApods,
+            oldestLoadedDate: _dataManager.getOldestDate(newApods),
+            isLoading: false,
+          ));
     }
-  }
-
-  void _handleError(String error) {
-    _updateState(
-      (s) => s.copyWith(
-        error: error,
-        isLoading: false,
-      ),
-    );
-  }
-
-  void _handleLoadMoreError(String error) {
-    _updateState(
-      (s) => s.copyWith(
-        error: error,
-        isLoadingMore: false,
-        hasReachedEnd: true,
-      ),
-    );
-  }
-
-  Future<Either<Failure, List<Apod>>> _fetchMoreApods() async {
-    final endDate = DateTime(
-      _state.oldestLoadedDate!.year,
-      _state.oldestLoadedDate!.month,
-      _state.oldestLoadedDate!.day,
-    ).subtract(const Duration(days: 1));
-    final startDate = endDate.subtract(const Duration(days: _daysToLoad));
-
-    return _getApodList(startDate, endDate);
   }
 
   void _processMoreApods(List<Apod> newApods) {
     if (newApods.isEmpty) {
-      _updateState(
-        (s) => s.copyWith(
-          hasReachedEnd: true,
-          isLoadingMore: false,
-        ),
-      );
+      _updateState((s) => s.copyWith(
+            isLoadingMore: false,
+            hasReachedEnd: true,
+          ));
     } else {
-      final uniqueApods = _getUniqueApods([..._state.apods, ...newApods]);
-      _updateState(
-        (s) => s.copyWith(
-          apods: uniqueApods,
-          oldestLoadedDate: Formatter.findOldestDate(uniqueApods),
-          isLoadingMore: false,
-        ),
+      final uniqueApods = _dataManager.getUniqueApods(
+        [..._state.apods, ...newApods],
       );
+      _updateState((s) => s.copyWith(
+            apods: uniqueApods,
+            oldestLoadedDate: _dataManager.getOldestDate(uniqueApods),
+            isLoadingMore: false,
+          ));
     }
   }
 
-  List<Apod> _sortApods(List<Apod> apods) {
-    return List<Apod>.from(apods)..sort((a, b) => b.date.compareTo(a.date));
+  void _handleError(String error, {bool isPagination = false}) {
+    _updateState((s) => s.copyWith(
+          error: error,
+          isLoading: false,
+          isLoadingMore: isPagination ? false : s.isLoadingMore,
+          hasReachedEnd: isPagination ? true : s.hasReachedEnd,
+        ));
   }
 
-  List<Apod> _getUniqueApods(List<Apod> apods) {
-    return _sortApods(
-      Map<String, Apod>.fromEntries(
-        apods.map((apod) => MapEntry(apod.date, apod)),
-      ).values.toList(),
-    );
+  @override
+  void dispose() {
+    _scrollManager.dispose();
+    super.dispose();
   }
 }
