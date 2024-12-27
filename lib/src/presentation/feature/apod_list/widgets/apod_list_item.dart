@@ -221,7 +221,7 @@ class _ErrorPlaceholder extends StatelessWidget {
     final theme = Theme.of(context);
 
     return Container(
-      key: const Key('error-container'),
+      key: const Key('error_container'),
       color: Colors.black12,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,

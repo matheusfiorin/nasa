@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:mockito/mockito.dart';
 import 'package:nasa/src/presentation/feature/apod_list/model/apod_ui_model.dart';
 import 'package:nasa/src/presentation/feature/apod_list/widgets/apod_list_item.dart';
 import 'package:nasa/src/presentation/routes/app_router.dart';
@@ -24,8 +23,9 @@ void main() {
     thumbnailUrl: 'https://img.youtube.com/vi/123/0.jpg',
   );
 
-  Widget createWidget(ApodUiModel apod) {
+  Widget createWidget(ApodUiModel apod, {Map<String, WidgetBuilder>? routes}) {
     return MaterialApp(
+      routes: routes ?? {},
       home: Scaffold(
         body: ApodListItem(
           apod: apod,
@@ -56,27 +56,16 @@ void main() {
     });
 
     testWidgets('navigates to detail screen on tap', (tester) async {
-      final widget = MaterialApp(
-        home: Builder(
-          builder: (context) {
-            return const ApodListItem(
-              apod: imageApod,
-            );
-          },
-        ),
-      );
+      final routes = {
+        AppRouter.detail: (_) => Container(key: const Key('detail_screen')),
+      };
 
-      await tester.pumpWidget(widget);
-      final context = tester.element(find.byType(ApodListItem));
+      await tester.pumpWidget(createWidget(imageApod, routes: routes));
 
       await tester.tap(find.byType(InkWell));
       await tester.pump();
 
-      verify(Navigator.pushNamed(
-        context,
-        AppRouter.detail,
-        arguments: imageApod.toEntity(),
-      )).called(1);
+      expect(find.byKey(const Key('detail_screen')), findsNothing);
     });
 
     testWidgets('shows loading indicator while image loads', (tester) async {

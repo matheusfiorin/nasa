@@ -11,7 +11,7 @@ class AppRouter {
     builder: (_) => const ApodListScreen(),
   );
 
-  static Route<dynamic> onGenerateRoute(RouteSettings settings) {
+  static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
       case initial:
         return _apodListView;

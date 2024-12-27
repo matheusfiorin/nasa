@@ -3,117 +3,214 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:nasa/src/presentation/common/widgets/responsive_grid.dart';
 
 void main() {
+  Widget createWidgetUnderTest({
+    required List<Widget> children,
+    required double width,
+    EdgeInsetsGeometry? padding,
+    ScrollController? scrollController,
+  }) {
+    return MaterialApp(
+      home: Scaffold(
+        body: MediaQuery(
+          data: MediaQueryData(
+            size: Size(width, 600),
+          ),
+          child: ResponsiveGrid(
+            padding: padding,
+            scrollController: scrollController,
+            children: children,
+          ),
+        ),
+      ),
+    );
+  }
+
   group('ResponsiveGrid', () {
-    testWidgets('renders correct number of columns based on width',
-        (tester) async {
-      final children = List.generate(
-        6,
-        (index) => Container(
+    testWidgets('renders empty grid when no children are provided',
+        (WidgetTester tester) async {
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: [],
+        width: 800,
+      ));
+
+      expect(find.byType(ListView), findsOneWidget);
+      expect(find.byType(Row), findsNothing);
+    });
+
+    testWidgets('shows one item per row on small screens',
+        (WidgetTester tester) async {
+      final testWidgets = List.generate(
+        3,
+        (index) => SizedBox(
           key: Key('item_$index'),
           height: 100,
           child: Text('Item $index'),
         ),
       );
 
-      // Test mobile layout (width < 600)
-      await tester.binding.setSurfaceSize(const Size(400, 800));
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResponsiveGrid(children: children),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 500, // Small screen width
+      ));
+      await tester.pump();
 
-      // Should be single column in mobile
-      expect(find.byType(Row), findsWidgets);
-      expect(
-        tester.widget<Row>(find.byType(Row).first).children.length,
-        1,
-      );
+      // Each row should only contain one item
+      var firstRow = find.byType(Row).first;
+      var rowWidget = tester.widget<Row>(firstRow);
+      expect(rowWidget.children.length, 1);
 
-      // Test tablet layout (width >= 600)
-      await tester.binding.setSurfaceSize(const Size(800, 800));
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResponsiveGrid(children: children),
-          ),
-        ),
-      );
-      await tester.pumpAndSettle();
-
-      // Should be two columns in tablet
-      expect(find.byType(Row), findsWidgets);
-      expect(
-        tester.widget<Row>(find.byType(Row).first).children.length,
-        2,
-      );
-
-      // Clean up
-      await tester.binding.setSurfaceSize(null);
+      // All items should be visible
+      for (var i = 0; i < 3; i++) {
+        expect(find.byKey(Key('item_$i')), findsOneWidget);
+      }
     });
 
-    testWidgets('handles empty children list', (tester) async {
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: ResponsiveGrid(children: []),
-          ),
+    testWidgets('shows two items per row on medium screens',
+        (WidgetTester tester) async {
+      final testWidgets = List.generate(
+        4,
+        (index) => SizedBox(
+          key: Key('item_$index'),
+          height: 100,
+          child: Text('Item $index'),
         ),
       );
 
-      expect(find.byType(ListView), findsOneWidget);
-      expect(find.byType(Row), findsNothing);
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 800, // Medium screen width
+      ));
+      await tester.pump();
+
+      // First row should contain two items
+      var firstRow = find.byType(Row).first;
+      var rowWidget = tester.widget<Row>(firstRow);
+      expect(rowWidget.children.length, 2);
     });
 
-    testWidgets('applies correct padding', (tester) async {
+    testWidgets('shows three items per row on large screens',
+        (WidgetTester tester) async {
+      final testWidgets = List.generate(
+        5,
+        (index) => SizedBox(
+          key: Key('item_$index'),
+          height: 100,
+          child: Text('Item $index'),
+        ),
+      );
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 1000, // Large screen width
+      ));
+      await tester.pump();
+
+      // Find first row
+      var firstRow = find.byType(Row).first;
+      var rowWidget = tester.widget<Row>(firstRow);
+
+      expect(
+        rowWidget.children.whereType<Expanded>().length,
+        3, // Three items in the first row
+      );
+    });
+
+    testWidgets('applies padding when provided', (WidgetTester tester) async {
       const testPadding = EdgeInsets.all(16.0);
 
-      await tester.pumpWidget(
-        const MaterialApp(
-          home: Scaffold(
-            body: ResponsiveGrid(
-              padding: testPadding,
-              children: [
-                SizedBox(key: Key('test_child')),
-              ],
-            ),
-          ),
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: [Container()],
+        width: 800,
+        padding: testPadding,
+      ));
+
+      final ListView listViewWidget = tester.widget(find.byType(ListView));
+      expect(listViewWidget.padding, equals(testPadding));
+    });
+
+    testWidgets('uses provided ScrollController', (WidgetTester tester) async {
+      final ScrollController controller = ScrollController();
+
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: List.generate(20, (index) => Container(height: 100)),
+        width: 800,
+        scrollController: controller,
+      ));
+
+      final ListView listViewWidget = tester.widget(find.byType(ListView));
+      expect(listViewWidget.controller, equals(controller));
+
+      controller.dispose();
+    });
+
+    testWidgets('fills empty spaces with Expanded when items don\'t fill row',
+        (WidgetTester tester) async {
+      final testWidgets = List.generate(
+        2,
+        (index) => SizedBox(
+          key: Key('item_$index'),
+          height: 100,
+          child: Text('Item $index'),
         ),
       );
 
-      final listView = find.byType(ListView);
-      expect(listView, findsOneWidget);
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 1000, // Large screen width
+      ));
+      await tester.pump();
+
+      // Find first row
+      var firstRow = find.byType(Row).first;
+      var rowWidget = tester.widget<Row>(firstRow);
+
+      // Should have 3 Expanded widgets (2 with items, 1 empty)
+      expect(rowWidget.children.whereType<Expanded>().length, 3);
+
+      // One of them should be empty (containing only SizedBox)
       expect(
-        tester.widget<ListView>(listView).padding,
-        testPadding,
+        rowWidget.children
+            .whereType<Expanded>()
+            .where((exp) => exp.child is SizedBox)
+            .length,
+        1,
       );
     });
 
-    testWidgets('uses provided ScrollController', (tester) async {
-      final scrollController = ScrollController();
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ResponsiveGrid(
-              scrollController: scrollController,
-              children: const [
-                SizedBox(key: Key('test_child')),
-              ],
-            ),
-          ),
+    testWidgets('maintains widget state across screen resizes',
+        (WidgetTester tester) async {
+      final testWidgets = List.generate(
+        3,
+        (index) => SizedBox(
+          key: Key('item_$index'),
+          height: 100,
+          child: Text('Item $index'),
         ),
       );
 
-      final listView = find.byType(ListView);
-      expect(listView, findsOneWidget);
-      expect(
-        tester.widget<ListView>(listView).controller,
-        scrollController,
-      );
+      // Start with small screen
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 500,
+      ));
+      await tester.pump();
+
+      // Verify initial state
+      for (var i = 0; i < 3; i++) {
+        expect(find.byKey(Key('item_$i')), findsOneWidget);
+      }
+
+      // Rebuild with larger screen
+      await tester.pumpWidget(createWidgetUnderTest(
+        children: testWidgets,
+        width: 1000,
+      ));
+      await tester.pump();
+
+      // Verify items maintained after resize
+      for (var i = 0; i < 3; i++) {
+        expect(find.byKey(Key('item_$i')), findsOneWidget);
+      }
     });
   });
 }

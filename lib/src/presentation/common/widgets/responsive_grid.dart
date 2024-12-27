@@ -24,6 +24,7 @@ class ResponsiveGrid extends StatelessWidget {
                 : 1;
 
     return ListView.builder(
+      key: const Key('responsive_grid'),
       controller: scrollController,
       padding: padding,
       itemCount: (children.length / itemsPerRow).ceil(),

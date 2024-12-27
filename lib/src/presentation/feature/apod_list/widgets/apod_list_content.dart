@@ -8,7 +8,7 @@ import 'package:nasa/src/presentation/feature/apod_list/widgets/search_results_h
 class ApodListContent extends StatelessWidget {
   final List<ApodUiModel> apods;
   final ScrollController scrollController;
-  final VoidCallback onRefresh;
+  final Future<void> Function() onRefresh;
   final bool isLoadingMore;
   final String searchQuery;
 
@@ -24,7 +24,7 @@ class ApodListContent extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return RefreshIndicator(
-      onRefresh: () async => onRefresh(),
+      onRefresh: onRefresh,
       child: Column(
         children: [
           if (searchQuery.isNotEmpty) SearchResultsHeader(query: searchQuery),

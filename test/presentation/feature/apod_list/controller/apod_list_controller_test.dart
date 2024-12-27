@@ -1,4 +1,3 @@
-
 import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mockito/annotations.dart';
@@ -51,13 +50,10 @@ void main() {
     ];
 
     test('should load initial apods successfully', () async {
-      // Arrange
       when(mockGetApodList(any, any)).thenAnswer((_) async => Right(testApods));
 
-      // Act
       await controller.loadApods();
 
-      // Assert
       expect(controller.state.apods, testApods);
       expect(controller.state.isLoading, false);
       expect(controller.state.error, isEmpty);
@@ -65,38 +61,30 @@ void main() {
     });
 
     test('should handle failure when loading apods', () async {
-      // Arrange
       const failure = ServerFailure('Error loading apods');
       when(mockGetApodList(any, any))
           .thenAnswer((_) async => const Left(failure));
 
-      // Act
       await controller.loadApods();
 
-      // Assert
       expect(controller.state.apods, isEmpty);
       expect(controller.state.isLoading, false);
       expect(controller.state.error, failure.message);
     });
 
     test('should not load when already loading', () async {
-      // Arrange
       when(mockGetApodList(any, any)).thenAnswer((_) async {
         // Delay to ensure isLoading remains true during the second call
         await Future.delayed(const Duration(milliseconds: 100));
         return Right(testApods);
       });
 
-      // Start first load
       final future = controller.loadApods();
 
-      // Attempt second load while first is still in progress
       await controller.loadApods();
 
-      // Wait for the first load to complete
       await future;
 
-      // Assert
       verify(mockGetApodList(any, any)).called(1);
     });
   });
@@ -147,22 +135,17 @@ void main() {
     });
 
     test('should handle empty response when loading more', () async {
-      // Arrange
       when(mockGetApodList(any, any))
           .thenAnswer((_) async => Right(initialApods));
 
-      // Load initial data
       await controller.loadApods();
 
-      // Clear previous interactions
       clearInteractions(mockGetApodList);
 
       when(mockGetApodList(any, any)).thenAnswer((_) async => const Right([]));
 
-      // Act
       await controller.loadMore();
 
-      // Assert
       expect(controller.state.hasReachedEnd, true);
       expect(controller.state.isLoadingMore, false);
       verify(mockGetApodList(any, any)).called(1);
@@ -182,13 +165,10 @@ void main() {
     ];
 
     test('should perform search successfully', () async {
-      // Arrange
       when(mockSearchApods(any)).thenAnswer((_) async => Right(searchResults));
 
-      // Act
       await controller.searchApodsList('query');
 
-      // Assert
       expect(controller.state.apods, searchResults);
       expect(controller.state.isLoading, false);
       expect(controller.state.searchQuery, 'query');
@@ -196,14 +176,11 @@ void main() {
     });
 
     test('should reset search and load apods when query is empty', () async {
-      // Arrange
       when(mockGetApodList(any, any)).thenAnswer((_) async => const Right([]));
       when(mockClearCache()).thenAnswer((_) async => const Right(null));
 
-      // Act
       await controller.searchApodsList('');
 
-      // Assert
       verify(mockClearCache()).called(1);
       verify(mockGetApodList(any, any)).called(1);
       expect(controller.state.searchQuery, isEmpty);

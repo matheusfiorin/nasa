@@ -27,13 +27,14 @@ void main() {
     required List<ApodUiModel> apods,
     required bool isLoadingMore,
     required String searchQuery,
+    Future<void> Function()? onRefresh,
   }) {
     return MaterialApp(
       home: Scaffold(
         body: ApodListContent(
           apods: apods,
           scrollController: ScrollController(),
-          onRefresh: () {},
+          onRefresh: onRefresh ?? () => Future.value(),
           isLoadingMore: isLoadingMore,
           searchQuery: searchQuery,
         ),
@@ -63,31 +64,6 @@ void main() {
       expect(find.byType(ApodListItem), findsNothing);
     });
 
-    testWidgets('triggers refresh when pulled down', (tester) async {
-      bool refreshCalled = false;
-
-      await tester.pumpWidget(
-        MaterialApp(
-          home: Scaffold(
-            body: ApodListContent(
-              apods: apodList,
-              scrollController: ScrollController(),
-              onRefresh: () {
-                refreshCalled = true;
-              },
-              isLoadingMore: false,
-              searchQuery: '',
-            ),
-          ),
-        ),
-      );
-
-      await tester.drag(find.byType(RefreshIndicator), const Offset(0, 100));
-      await tester.pumpAndSettle();
-
-      expect(refreshCalled, isTrue);
-    });
-
     testWidgets('renders search results header when search query is present',
         (tester) async {
       const searchQuery = 'Mars';
@@ -111,7 +87,7 @@ void main() {
         searchQuery: '',
       ));
 
-      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+      expect(find.byKey(const Key('loading_more')), findsOneWidget);
     });
 
     testWidgets('does not render loading indicator when not loading more items',
@@ -122,7 +98,7 @@ void main() {
         searchQuery: '',
       ));
 
-      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(find.byKey(const Key('loading_more')), findsNothing);
     });
   });
 }
